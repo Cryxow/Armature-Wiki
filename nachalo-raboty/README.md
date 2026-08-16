@@ -1,0 +1,13 @@
+# 🕯️ Начало работы
+
+## Зависимости
+
+Установите **Armature**, **BetterModel**, **PacketEvents** и провайдер предметов/действий в папку `plugins/` сервера. После первой установки перезапустите сервер. Armature отключается, если BetterModel отсутствует. PacketEvents необязателен, но без него часть важных функций недоступна.
+
+Поместите файлы bbmodel в `plugins/Armature/models/`.
+
+## Первая проверка при неполадках
+
+При запуске и перезагрузке Armature сообщает об отсутствующих анимациях для каждой модели. Отсутствующие имена безопасно игнорируются, но соответствующее действие не будет воспроизводиться, пока анимация не появится в ассете BetterModel.
+
+<table data-view="cards"><thead><tr><th></th><th data-hidden data-card-cover data-type="image">Обложка</th><th data-hidden data-card-target data-type="content-ref"></th></tr></thead><tbody><tr><td><mark style="color:$primary;">🛠️ <strong>Основная конфигурация</strong></mark></td><td><a href="https://3676679775-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FDcWT3onsbt69DlAqumqZ%2Fuploads%2FDkuReK4EUvR1fd60WUTT%2F2026-08-10%2016_17_17-.png?alt=media&#x26;token=fdd04924-fffe-4985-b9e4-ecdbd9c868a8">https://3676679775-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FDcWT3onsbt69DlAqumqZ%2Fuploads%2FDkuReK4EUvR1fd60WUTT%2F2026-08-10%2016_17_17-.png?alt=media&#x26;token=fdd04924-fffe-4985-b9e4-ecdbd9c868a8</a></td><td></td></tr><tr><td><mark style="color:$primary;">🧸 <strong>Создать первую модель</strong></mark></td><td><a href="https://3676679775-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FDcWT3onsbt69DlAqumqZ%2Fuploads%2FU4QWjdVh8f2EbaSU83tj%2Fimage.png?alt=media&#x26;token=bd2d2383-1585-46bf-a13d-4c41d6f55233">https://3676679775-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FDcWT3onsbt69DlAqumqZ%2Fuploads%2FU4QWjdVh8f2EbaSU83tj%2Fimage.png?alt=media&#x26;token=bd2d2383-1585-46bf-a13d-4c41d6f55233</a></td><td></td></tr><tr><td>📰 <mark style="color:$primary;"><strong>Добавить анимации в игре</strong></mark></td><td><a href="https://3676679775-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FDcWT3onsbt69DlAqumqZ%2Fuploads%2F5EEX5RgmAXSAiu5mn8hb%2Fhttps___files.gitbook.com_v0_b_gitbook-x-prod.appspot.com_o_spaces2Fuploads2F2026-06-06_23.59.20.avif?alt=media&#x26;token=3398e01b-9ec4-46c4-869e-198074545bb5">https://3676679775-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FDcWT3onsbt69DlAqumqZ%2Fuploads%2F5EEX5RgmAXSAiu5mn8hb%2Fhttps___files.gitbook.com_v0_b_gitbook-x-prod.appspot.com_o_spaces2Fuploads2F2026-06-06_23.59.20.avif?alt=media&#x26;token=3398e01b-9ec4-46c4-869e-198074545bb5</a></td><td></td></tr></tbody></table>

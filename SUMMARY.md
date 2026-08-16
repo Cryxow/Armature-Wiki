@@ -1,0 +1,18 @@
+# Table of contents
+
+* [📘 Введение](README.md)
+* [🕯️ Начало работы](nachalo-raboty/README.md)
+  * [🛠️ Конфигурация](nachalo-raboty/konfiguraciya.md)
+  * [🧸 Модель BlockBench](nachalo-raboty/model-blockbench.md)
+  * [📰 Профили](nachalo-raboty/profili/README.md)
+    * [🛍️ Группировка предметов](nachalo-raboty/profili/gruppirovka-predmetov.md)
+  * [📟 Команды и permissions](nachalo-raboty/komandy-i-permissions.md)
+* [🧮 Расширенные возможности](rasshirennye-vozmozhnosti/README.md)
+  * [👕 Пользовательская броня](rasshirennye-vozmozhnosti/polzovatelskaya-bronya.md)
+  * [🔥 Лучшие настройки](rasshirennye-vozmozhnosti/luchshie-nastroiki.md)
+  * [Поддерживаемые плагины](rasshirennye-vozmozhnosti/podderzhivaemye-plaginy/README.md)
+    * [ItemsAdder](rasshirennye-vozmozhnosti/podderzhivaemye-plaginy/itemsadder.md)
+    * [Nexo](rasshirennye-vozmozhnosti/podderzhivaemye-plaginy/nexo.md)
+    * [CraftEngine](rasshirennye-vozmozhnosti/podderzhivaemye-plaginy/craftengine.md)
+    * [WeaponMechanics](rasshirennye-vozmozhnosti/podderzhivaemye-plaginy/weaponmechanics.md)
+* [🔭 Устранение неполадок](ustranenie-nepoladok.md)
