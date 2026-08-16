@@ -1,0 +1,18 @@
+# Table of contents
+
+* [📘 Introduction](README.md)
+* [🕯️ Premiers pas](premiers-pas/README.md)
+  * [🛠️ Configuration](premiers-pas/configuration.md)
+  * [🧸 Modèle BlockBench](premiers-pas/modele-blockbench.md)
+  * [📰 Profils](premiers-pas/profils/README.md)
+    * [🛍️ Regrouper les items](premiers-pas/profils/regrouper-les-items.md)
+  * [📟 Commandes et permissions](premiers-pas/commandes-et-permissions.md)
+* [🧮 Avancé](avance/README.md)
+  * [👕 Armures personnalisées](avance/armures-personnalisees.md)
+  * [🔥 Meilleurs réglages](avance/meilleurs-reglages.md)
+  * [Plugins pris en charge](avance/plugins-pris-en-charge/README.md)
+    * [ItemsAdder](avance/plugins-pris-en-charge/itemsadder.md)
+    * [Nexo](avance/plugins-pris-en-charge/nexo.md)
+    * [CraftEngine](avance/plugins-pris-en-charge/craftengine.md)
+    * [WeaponMechanics](avance/plugins-pris-en-charge/weaponmechanics.md)
+* [🔭 Dépannage](depannage.md)
