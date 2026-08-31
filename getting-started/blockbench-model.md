@@ -24,6 +24,17 @@ first-person models in memory before BetterModel loads them: the hierarchy is
 shifted for the carrier and <code>root</code> receives the first-person
 rotation. The source file is never rewritten.
 
+Place the <code>root</code> pivot at the horizontal center of the model: its
+<code>X</code> and <code>Z</code> position must be centered, while its
+<code>Y</code> height can be anywhere. Keep <code>root</code> fixed during every
+animation; do not translate or keyframe its position. Armature uses it as the
+model's structural anchor.
+
+If an animation must move the complete model, add a separate bone directly
+under <code>root</code>, parent all model bones/elements to that child, and
+animate the child instead. This keeps <code>root</code> available as the stable
+anchor required by the first-person adaptation.
+
 Disable model adaptation only when the model already uses a non-standard root
 hierarchy or its own completed camera transform:
 
