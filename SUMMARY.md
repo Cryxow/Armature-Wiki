@@ -7,6 +7,7 @@
 
 * [🛠️ Configuration](getting-started/configuration.md)
 * [🧸 BlockBench Model](getting-started/blockbench-model.md)
+* [🛠️ In-game Bone Editor](getting-started/in-game-editor.md)
 * [📰 Profiles](getting-started/profiles/README.md)
   * [🛍️ Grouping Items](getting-started/profiles/grouping-items.md)
   * [🧮 Built-in Conditions](getting-started/profiles/conditions.md)

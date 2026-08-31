@@ -19,6 +19,9 @@ The main command is `/armature`. The alias is `/arm`. The base command permissio
 
 The migration source and optional output are resolved inside `plugins/Armature/profiles`. The source must be a legacy profile. The candidate is validated against the modern loader before it is written.
 
+See [In-game bone editor](in-game-editor.md) for the complete editor workflow,
+scope rules, persistence format, and troubleshooting.
+
 ## Reload modes
 
 | Mode       | Reloads                                                  |
