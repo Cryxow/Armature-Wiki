@@ -1,33 +1,58 @@
-# 👕 Custom Armors
+# Custom armors
 
-## Custom textures for vanilla armors
+Armature passes player armor rendering to BetterModel. The armor texture
+folder name is the BetterModel armor type.
 
-Replace `armor.png` and `leggings.png` textures inside `plugins/BetterModel/armors/armors/<vanilla_type>/`  by your custom textures. Make sure to use the same file names.
+## Custom textures for vanilla armor
 
-## Custom armors added by a plugin
+Replace the BetterModel textures in:
 
-The followings steps are assuming you already have a custom armor set-up by a plugin as CraftEngine, ItemsAdder or Nexo.
+~~~text
+plugins/BetterModel/armors/armors/<vanilla_type>/
+~~~
 
-Let's say you have a custom emerald armor set with a custom ID like `your_namespace:emerald_chestplate`, `your_namespace:emerald_leggings` etc
+Use the expected <code>armor.png</code> and, for leggings,
+<code>leggings.png</code> filenames. Keep the folder structure used by the
+BetterModel installation.
 
-### Adding custom textures
+## Armor supplied by an item plugin
 
-Copy your player armor `armor.png` and `leggings.png` textures inside `plugins/BetterModel/armors/armors/emerald/`  _(replace `emerald` by your armor type name)_
+Assume an item provider exposes:
 
-If you are not sure, take a look at the vanilla armors already inside `plugins/BetterModel/armors/`
+~~~text
+your_namespace:emerald_chestplate
+your_namespace:emerald_leggings
+~~~
 
-### Mapping the textures to the armor
+Create the matching BetterModel armor folder:
 
-Go inside `/Armature/config.yml` and look for `armor-mappings:`. Follow this structure:
+~~~text
+plugins/BetterModel/armors/armors/emerald/
+~~~
 
-<pre class="language-yaml"><code class="lang-yaml">armor-mappings:
-  "<a data-footnote-ref href="#user-content-fn-1">your_namespace:emerald_chestplate</a>": <a data-footnote-ref href="#user-content-fn-2">emerald</a> 
-</code></pre>
+Place the player armor textures there. The folder name
+<code>emerald</code> is an arbitrary BetterModel armor type; it must match the
+mapping value.
 
+## Map the item identities
 
+Add the custom armor item ids under <code>armor-mappings</code> in
+<code>plugins/Armature/config.yml</code>:
 
-[^1]: your custom armor item ID
+~~~yaml
+armor-mappings:
+  "your_namespace:emerald_chestplate": emerald
+  "your_namespace:emerald_leggings": emerald
+~~~
 
-[^2]: ```
-    name of the folder inside /BetterModel/armors/armors/
-    ```
+The key is the exact item identity returned by the item provider. The value is
+the BetterModel armor directory name.
+
+Apply the mapping with:
+
+~~~text
+/armature reload all
+~~~
+
+This mapping affects presentation only. It does not create items, change armor
+slots, or alter the gameplay plugin's armor state.

@@ -1,21 +1,40 @@
-# 🧸 BlockBench Model
+# Blockbench model
+
+Armature renders BetterModel <code>.bbmodel</code> assets as first-person
+presentations. Put model files in
+<code>plugins/Armature/models/</code>. The filename becomes the BetterModel
+model id, so <code>fp_rifle.bbmodel</code> is referenced as
+<code>fp_rifle</code>.
 
 ## Requirements
 
-* Install [BlockBench](https://www.blockbench.net/)
-* Install [Cameras](https://github.com/JannisX11/blockbench-plugins/blob/master/plugins/cameras.js) plugin in BlockBench
+* Install [Blockbench](https://www.blockbench.net/).
+* Install the [Cameras plugin](https://github.com/JannisX11/blockbench-plugins/blob/master/plugins/cameras.js) if you want an in-editor first-person preview.
+* Use BetterModel's model format and animation conventions.
 
-## Creating the model
+Starting from a copy of the generated <code>fp_empty_hands.bbmodel</code> or
+another known-good Armature model keeps the player-arm hierarchy and camera
+preview ready.
 
-To create your model, it is recommended to duplicate the `empty_hands.bbmodel` model file to already have the correct arms setup.
+## Required model structure
 
-You will see this model inside:
+Use a top-level group named <code>root</code>. With
+<code>render.model-adaptation: true</code>, Armature adapts standard
+first-person models in memory before BetterModel loads them: the hierarchy is
+shifted for the carrier and <code>root</code> receives the first-person
+rotation. The source file is never rewritten.
 
-<figure><img src="../.gitbook/assets/image.png" alt="BlockBench app screenshot of the default arms model."><figcaption><p>BlockBench app screenshot of the default arms model.</p></figcaption></figure>
+Disable model adaptation only when the model already uses a non-standard root
+hierarchy or its own completed camera transform:
 
-Armature is using built-in [BetterModel bone prefixes](https://github.com/toxicity188/BetterModel/wiki/Create-player-animation#make-your-animation), such as:
+~~~yaml
+render:
+  model-adaptation: false
+~~~
 
-```
+Armature recognizes the conventional BetterModel player-bone prefixes:
+
+~~~text
 head (ph)
 right arm (pra)
 right forearm (prfa)
@@ -31,38 +50,110 @@ left foreleg (plfl)
 left item (pli)
 right item (pri)
 cape (cape)
-```
+~~~
 
-## Adding the item
+## Held item bones
 
-By default, the model is automatically displaying held items by the `pli_left_item` and `pri_right_item`, you can remove those bones if you don't want this and manually add your item.
+The conventional <code>pli_left_item</code> and
+<code>pri_right_item</code> bones are used for held-item presentation. Keep
+them when you want Armature to attach the held item automatically. Remove them
+when the weapon is modeled directly into the asset, as in a rifle model.
 
-Adding your item manually can be useful for guns, as you can see in `fp_rifle.bbmodel` model to have full control over it.
+For a player-specific weapon model, bind it through a profile:
 
-## Animating your model
+~~~yaml
+m4a1:
+  match:
+    item: weaponmechanics:m4a1
+  model:
+    name: fp_rifle
+~~~
 
-### Setting up the viewport
+The model name must match the asset filename exactly. The profile controls
+item matching, hand masking, animations, and optional provider attachments.
 
-First, it is recommended to split the viewport in `Double Horizontal` to see a preview of your animation from the player's eyes.
+## Animation names
 
-&#x20;<img src="../.gitbook/assets/image (1).png" alt="" data-size="original">
+Do not create Armature animations with BetterModel's reserved automatic names:
 
-<figure><img src="../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
+* <code>idle</code>
+* <code>walk</code>
+* <code>idle_fly</code>
+* <code>walk_fly</code>
+* <code>spawn</code>
+* <code>jump</code>
 
-The smaller rectangle you see in the trop part of the viewport is the player's screen.
+Armature rejects those names in profile animation definitions because
+BetterModel can play them automatically. Use names such as
+<code>armature_idle</code>, <code>armature_walk</code>,
+<code>armature_jump</code>, <code>fire</code>, or
+<code>reload</code>.
 
-### Animations
+Modern profiles refer to these assets under an explicit channel:
 
-Some default animations are present, you can delete them to create yours from scratch or use them as a base.
+~~~yaml
+animations:
+  movement:
+    - when: player.moving == true
+      animation:
+        name: armature_walk
+        loop: true
+  actions:
+    - trigger: weaponmechanics:fire
+      animation:
+        name: fire
+        duration: 4t
+~~~
 
-I recommend following [ModelEngine animating guide](https://git.lumine.io/mythiccraft/model-engine-4/-/wikis/Modeling/Animating-a-Model) since it's well explained and works the same as BetterModel.
+See [Profiles](profiles/README.md) for the full schema and
+[Built-in triggers](profiles/triggers.md) for the event names.
 
-#### Animations naming rules
+## Camera marker
 
-<mark style="color:$danger;">**⚠️ DO NOT USE THOSE EXACT NAMES IN YOUR ANIMATIONS ⚠️**</mark>
+Add a zero-size bone named <code>s_camera</code> when using the optional
+camera-rotation pipeline. Animate this bone to define the camera basis that
+Armature transports through the generated marker assets. The feature is
+disabled by default:
 
-<mark style="color:$danger;">`idle`</mark><mark style="color:$danger;">,</mark> <mark style="color:$danger;"></mark><mark style="color:$danger;">`walk`</mark><mark style="color:$danger;">,</mark> <mark style="color:$danger;"></mark><mark style="color:$danger;">`idle_fly`</mark><mark style="color:$danger;">,</mark> <mark style="color:$danger;"></mark><mark style="color:$danger;">`walk_fly`</mark><mark style="color:$danger;">,</mark> <mark style="color:$danger;"></mark><mark style="color:$danger;">`spawn`</mark>
+~~~yaml
+render:
+  camera-rotation:
+    enabled: true
+    debug-mode: off
+~~~
 
-Reason : BetterModel has a built-in actions system that automatically plays those exact animations, and Armature has no power to prevent that. Using those names will result on animation glitches caused by the interference of the two plugins.
+This is a client resource-pack path and requires a supported Fabulous client.
+It is independent from the default viewmodel Y-lock.
 
-Use alternative names for those animations or add a prefix/suffix like `armature_idle`, `a_idle`, `base`, `idlee` ...
+## Effects animator
+
+Armature registers BetterModel script builders for sound and particle
+keyframes. Add an <code>Effects</code> animator in Blockbench, insert a script
+keyframe, and use lines such as:
+
+~~~text
+sound{sound=block.anvil.break;locator=muzzle;volume=1;pitch=1}
+particle{locator=muzzle;type=CRIT;count=8;dx=0.02;dy=0.02;dz=0.02}
+~~~
+
+<code>locator</code> is a named bone; <code>origin</code> uses the model
+origin. The default <code>audience=viewer</code> keeps a first-person effect
+private to the model viewer. Use <code>audience=nearby</code> or
+<code>audience=world</code> for effects visible to other players.
+
+The locator follows the visible first-person model transform. The sound id and
+any custom sound or particle assets must also exist in the resource pack.
+
+## Validate the asset
+
+After adding or changing a model:
+
+1. Run <code>/armature reload models</code> or
+   <code>/armature reload all</code>.
+2. Check the reload summary for imported models and unavailable animations.
+3. Apply the generated resource pack to the client.
+4. Test the held item, profile transitions, action animations, and effects
+   with one player.
+
+Missing model or animation references fail closed and are reported as
+non-fatal diagnostics; Armature does not mutate the gameplay item.

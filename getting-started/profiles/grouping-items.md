@@ -1,139 +1,126 @@
-# 🛍️ Grouping Items
+# Grouping items
 
-A profile can map multiple items to one model and one animation set. Armature resolves selectors when profiles load, then every matched item points to the same profile.
+A modern profile can map several items to one BetterModel model and one set of
+animation rules. All selectors live under <code>match</code>.
 
-## When to use grouping
+## Exact items
 
-Use grouping when several items share:
+Use <code>match.items</code> for a list of exact identities:
 
-* the same BetterModel model;
-* the same animations;
-
-Example: make every vanilla sword use the same \`fp\_sword\` rig.
-
-## The \`items\` field
-
-```yaml
-swords:
-  items:
-    - family: swords
-  model: fp_sword
-  animations:
-    idle: sword_idle
-    swing:
-      name: sword_swing
-      duration-ticks: 8
-```
-
-The \`items\` list accepts exact item IDs, item families, and patterns. Every resolved item receives the \`swords\` profile.
-
-Selectors can be mixed:
-
-```yaml
-combat_tools:
-  items:
-    - minecraft:diamond_sword
-    - minecraft:netherite_sword
-    - family: axes
-    - pattern: "*_HOE"
-  model: fp_combat
-  animations:
-    idle: combat_idle
-    swing: combat_swing
-```
-
-## Selector types
-
-### Exact item
-
-Use the \`namespace:item\` format:
-
-```yaml
-items:
-  - minecraft:diamond_sword
-  - weaponmechanics:m4a1
-```
-
-Custom identities can be used when a provider exposes them. Wildcard patterns are currently supported only for vanilla items.
-
-### Vanilla families
-
-Families include vanilla materials classified by Armature:
-
-```yaml
-items:
-  - family: swords
-  - family: pickaxes
-  - family: tools
-```
-
-Available families include `blocks`, `generic`, `tools`, `swords`, `pickaxes`, `axes`, `shovels`, `hoes`, `bows`, `crossbows`, `food`, `potions`, `projectiles`, and `throwables`.
-
-Plural names are accepted. \`tools\` includes pickaxes, axes, shovels, and hoes.
-
-The short form is also valid:
-
-```yaml
-items:
-  - swords
-  - tools
-```
-
-### Vanilla patterns
-
-Patterns use \`\*\` for any number of characters and \`?\` for one character:
-
-```yaml
-items:
-  - pattern: "*_SWORD"
-  - pattern: "minecraft:*_LEAVES"
-```
-
-A pattern without a namespace targets Minecraft. Wildcard families and patterns are currently limited to vanilla items.
-
-## Profile-level shortcuts
-
-Instead of putting selectors under \`items\`, use \`families\` and \`patterns\`:
-
-```yaml
+~~~yaml
 vanilla_weapons:
-  families:
-    - swords
-    - bows
-  patterns:
-    - "*_CROSSBOW"
-  model: fp_weapon
+  match:
+    items:
+      - minecraft:diamond_sword
+      - minecraft:netherite_sword
+      - weaponmechanics:m4a1
+  model:
+    name: fp_weapon
   animations:
-    idle: weapon_idle
-    swing: weapon_swing
-```
+    actions:
+      - trigger: player:attack
+        animation:
+          name: sword_swing
+          duration: 8t
+~~~
 
-\`item\`, \`items\`, \`families\`, and \`patterns\` are combined. Duplicate selectors inside one profile are deduplicated.
+Provider item identities keep their namespace. For example, a WeaponMechanics
+title is matched as <code>weaponmechanics:m4a1</code>, while an ItemsAdder or
+CraftEngine identity uses the namespace returned by that provider. Nexo ids
+use the explicit <code>nexo:</code> namespace.
 
-## Important rules
+## Families
 
-* Each item can match only one loaded profile.
-* If two profiles target the same item, reload is rejected with a duplicate-match error.
-* A profile needs at least one selector, a \`model\`, and an \`animations\` section.
-* Apply changes with \`/armature reload\`.
-* If validation fails, the previous active profile set remains in use.
-* Families and patterns expand against the vanilla materials available when profiles load.
+Use <code>match.families</code> for Armature's vanilla item categories:
 
-## Complete example
+~~~yaml
+vanilla_tools:
+  match:
+    families:
+      - swords
+      - tools
+  model:
+    name: fp_tool
+~~~
 
-```yaml
-vanilla_swords:
-  items:
-    - family: swords
-    - pattern: "*_SWORD"
-  model: fp_sword
-  sway-rate: 0.9
-  animations:
-    idle: sword_idle
-    walk: sword_walk
-    swing:
-      name: sword_swing
-      duration-ticks: 8
-```
+Supported family names are:
+<code>blocks</code>, <code>generic</code> or <code>items</code>,
+<code>tools</code>, <code>pickaxes</code>, <code>axes</code>,
+<code>shovels</code>, <code>hoes</code>, <code>swords</code>,
+<code>shields</code>, <code>bows</code>, <code>crossbows</code>,
+<code>tridents</code>, <code>food</code>, <code>drinks</code>,
+<code>throwables</code>, and <code>firearms</code>. Singular forms are
+accepted for category names; <code>tools</code> includes pickaxes, axes,
+shovels, and hoes.
 
-Start with exact item IDs while testing a model, then expand to a family or pattern after the presentation is correct. After each change, check the reload logs and test one representative item from each group.
+## Patterns
+
+Use <code>match.patterns</code> for Minecraft material-name patterns.
+<code>*</code> matches any number of characters and <code>?</code> matches one
+character:
+
+~~~yaml
+vanilla_blades:
+  match:
+    patterns:
+      - "*_SWORD"
+      - "minecraft:*_AXE"
+  model:
+    name: fp_blade
+~~~
+
+Wildcard patterns currently expand Minecraft materials only. A provider item
+should use its exact namespaced identity.
+
+## Mixed selectors and exclusions
+
+Positive selector forms can be combined:
+
+~~~yaml
+combat_tools:
+  match:
+    items:
+      - minecraft:diamond_sword
+      - family: axes
+      - pattern: "*_HOE"
+    families:
+      - bows
+    patterns:
+      - "*_CROSSBOW"
+  model:
+    name: fp_combat
+~~~
+
+Remove exact items, families, or patterns with <code>match.exclude</code>:
+
+~~~yaml
+combat_tools:
+  match:
+    families: [swords]
+    exclude:
+      items:
+        - minecraft:golden_sword
+      patterns:
+        - "*_NETHERITE"
+  model:
+    name: fp_combat
+~~~
+
+Structured item matching is different: use a mapping under
+<code>match.item</code> when material, custom model data, item model, PDC, or
+custom tags must be checked. It cannot be combined with positive selectors,
+but it can use <code>exclude</code>; those exclusions must be Minecraft items.
+
+## Rules
+
+* Every profile needs <code>match</code> and <code>model.name</code>.
+* An <code>animations</code> section is optional when a Java, Skript,
+  MythicMobs, or Denizen integration uses raw model playback.
+* Each item can resolve to only one profile.
+* Duplicate selectors inside one profile are deduplicated.
+* A duplicate match across profiles rejects the new profile set.
+* Families and patterns expand when profiles load.
+* Apply changes with <code>/armature reload profiles</code>.
+
+See [Profiles](README.md) for the complete modern schema and
+[Built-in conditions](conditions.md) for rule selection.

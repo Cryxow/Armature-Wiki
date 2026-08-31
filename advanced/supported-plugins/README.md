@@ -1,7 +1,29 @@
-# 🦾 Supported Plugins
+# 🦾 Supported plugins
 
-<table><thead><tr><th width="191">Plugin</th><th width="89" align="center">Items</th><th width="154" align="center">Provider-driven Actions</th><th width="150" align="center">Auto Hide Vanilla Hand</th><th width="184">Note</th></tr></thead><tbody><tr><td>ItemsAdder</td><td align="center">✔️</td><td align="center">❌</td><td align="center">✔️</td><td>Read more <a href="itemsadder.md">here</a></td></tr><tr><td>Nexo</td><td align="center">✔️</td><td align="center">❌</td><td align="center">✔️</td><td>Read more <a href="nexo.md">here</a></td></tr><tr><td>CraftEngine</td><td align="center">✔️</td><td align="center">❌</td><td align="center">✔️</td><td>Read more <a href="craftengine.md">here</a></td></tr><tr><td>WeaponMechanics</td><td align="center">✔️</td><td align="center">✔️</td><td align="center">〰️</td><td>Read more <a href="weaponmechanics.md">here</a></td></tr></tbody></table>
+Armature detects optional providers at startup. Providers expose item identity
+or presentation events; they do not move gameplay ownership into Armature.
 
-## Provider-driven Actions
+| Plugin | Item identity | Presentation actions | Documentation |
+| --- | --- | --- | --- |
+| ItemsAdder | yes | no provider action stream | [ItemsAdder](itemsadder.md) |
+| Nexo | yes | no provider action stream | [Nexo](nexo.md) |
+| CraftEngine | yes | no provider action stream | [CraftEngine](craftengine.md) |
+| QualityArmory | yes when available | legacy action provider support | See profile and API references |
+| WeaponMechanics | yes | fire, aim, reload, firearm state, fire mode, equipment | [WeaponMechanics](weaponmechanics.md) |
+| Skript | n/a | effects, signals, lifecycle events, expressions | [Skript](skript.md) |
+| MythicMobs | n/a | mechanics and lifecycle triggers | [MythicMobs](mythicmobs.md) |
+| Denizen | n/a | command and lifecycle events | [Denizen](denizen.md) |
 
-Armature listens to some plugins events via their API and exposes them inside profile files to easily map animations.
+Skript, MythicMobs, and Denizen integration classes are embedded in the main
+Armature distribution. Install the host plugin separately; do not copy the
+standalone Gradle module artifacts to a production server.
+
+## Presentation-only boundary
+
+Armature can render an animation after a provider event or external signal,
+but it does not decide whether the gameplay action succeeded. Keep ammo,
+damage, projectiles, reload state, cooldowns, item consumption, and event
+cancellation in the gameplay plugin.
+
+For a provider-independent integration, use the [Public API](../public-api.md)
+or a modern action rule with a custom namespaced trigger.
