@@ -1,0 +1,30 @@
+root: ./
+structure:
+  readme: ./README.md
+  summary: ./SUMMARY.md
+redirects:
+  introduction: README.md
+  troubleshooting: troubleshooting.md
+  getting-started/configuration: getting-started/configuration.md
+  getting-started/blockbench-model: getting-started/blockbench-model.md
+  getting-started/in-game-editor: getting-started/in-game-editor.md
+  getting-started/profiles: getting-started/profiles/README.md
+  getting-started/profiles/grouping-items: getting-started/profiles/grouping-items.md
+  getting-started/profiles/conditions: getting-started/profiles/conditions.md
+  getting-started/profiles/triggers: getting-started/profiles/triggers.md
+  advanced/custom-armors: advanced/custom-armors.md
+  advanced/best-settings: advanced/best-settings.md
+  advanced/public-api: advanced/public-api.md
+  advanced/public-api/setup: advanced/public-api/setup.md
+  advanced/public-api/animations: advanced/public-api/animations.md
+  advanced/public-api/signals: advanced/public-api/signals.md
+  advanced/public-api/providers: advanced/public-api/providers.md
+  advanced/public-api/examples: advanced/public-api/examples.md
+  advanced/supported-plugins: advanced/supported-plugins/README.md
+  advanced/supported-plugins/itemsadder: advanced/supported-plugins/itemsadder.md
+  advanced/supported-plugins/nexo: advanced/supported-plugins/nexo.md
+  advanced/supported-plugins/craftengine: advanced/supported-plugins/craftengine.md
+  advanced/supported-plugins/weaponmechanics: advanced/supported-plugins/weaponmechanics.md
+  advanced/supported-plugins/skript: advanced/supported-plugins/skript.md
+  advanced/supported-plugins/mythicmobs: advanced/supported-plugins/mythicmobs.md
+  advanced/supported-plugins/denizen: advanced/supported-plugins/denizen.md

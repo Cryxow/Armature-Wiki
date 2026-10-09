@@ -38,7 +38,7 @@ the sender. The `debug` domain is omitted unless the sender has
 
 `help` accepts a domain to show contextual usage, for example
 `/armature profile help`. Suggestions are filtered by permission and by the
-text already typed. Player, profile, model, animation and
+text already typed. Player, profile, model, animation, migration-file and
 native-probe completions are supplied where applicable.
 
 ## `/armature status`
@@ -80,16 +80,26 @@ Permission: `armature.command.reload`.
 ```text
 /armature config reload
 /armature config validate
+/armature config migrate <file> [--output <file>] [--local|--ai]
 /armature config restore-defaults [--confirm]
 ```
 
 `validate` reports configuration findings without applying changes.
 
+`migrate` reads a legacy profile relative to `plugins/Armature/profiles/` and
+writes a separate validated candidate, defaulting to `<name>.migrated.yml`.
+It never replaces the source or reloads the active presentation. `--local` and
+`--ai` are compatibility flags: both use the local deterministic converter,
+without network calls. Source and candidate files have a fixed internal
+256 KiB limit; there are no migration options in `config.yml`.
+See [Upgrading to 2.0.0](upgrading.md) before activating the output.
+
 `restore-defaults` first prints a preview. It overwrites matching files from
 embedded `default-assets/` only after the same sender repeats the command with
 `--confirm`; run the explicit reload command matching the changed files afterward.
 
-Permission: `armature.command.reload` for `validate` and `restore-defaults`.
+Permission: `armature.command.reload` for `validate` and `restore-defaults`;
+`armature.command.migrate-config` for `migrate`.
 
 ## `/armature profile`
 
@@ -232,6 +242,7 @@ with the canonical replacement. Their arguments are preserved in the hint.
 | --- | --- |
 | `/armature perf` | `/armature diagnostics performance` |
 | `/armature regenerate-defaults` | `/armature config restore-defaults` |
+| `/armature migrate-config <file> [--output <file>]` | `/armature config migrate <file> [--output <file>]` |
 | `/armature play <player> <model> <animation>` | `/armature animation play <player> <model> <animation>` |
 | `/armature native-probe <model> [animation]` | `/armature debug native-probe <model> [animation]` |
 
@@ -269,6 +280,7 @@ state.
 | `armature.command.play` | Animation play/stop | op |
 | `armature.command.editor` | Editor operations | op |
 | `armature.command.profile` | Profile operations | op |
+| `armature.command.migrate-config` | Legacy profile migration | op |
 | `armature.command.native-probe` | Armature debug commands | op |
 | `armature.disabled` | Player opt-out | false |
 

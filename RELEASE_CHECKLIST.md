@@ -8,7 +8,8 @@ Do not merge the draft PR or publish this revision before the server plugin
 
 - Wiki base: `28b4a5dfa7435a053d1504f742352379f3ad1e67` (`main`).
 - Previous English documentation: Git tag `wiki-v1.3.0`, same base commit.
-- Server sources: `4060e3671c169e1a098238217c6319bf84a2c87e` (`dev`, 2.0.0).
+- Server sources: `bebc1e803779095fd4531fb1aa6b857d58f85696` (`dev`, 2.0.0).
+- Server JAR SHA256: `C9671AE468FF5B5D9B99EEFED00761E4BFC236F3C958092698C99B4EA3EEF83A`.
 - Standalone Fabric sources: `34b8bff9a6abea7e444e3783faa36f9842d95c06`.
 - Blockbench extension: current local `0.3.0` distribution, strict native format v2.
 - Blockbench JS SHA256: `D42F373C89B812D7411986D60310376F765A49304383F57B4EA20D684E67925C`.
@@ -22,6 +23,8 @@ before publication. French and Russian branches/spaces are outside this change.
 
 - Navigation preserves existing Markdown page paths and assets, with eight
   top-level sections and 53 pages, including a detailed Molang reference.
+- GitBook configuration has 25 redirects for changed published routes; target
+  files are syntax/structurally checked with the same validation workflow.
 - Run `python tools/validate_wiki.py --output <scratch-directory>` to check
   navigation, local links/assets, headings and fences and extract examples.
 - All documented YAML fences are syntax-loaded with Paper's `YamlConfiguration`.
@@ -51,9 +54,9 @@ Paper**, **21 Java fences** compiled and **5 model sources** compiled natively.
 Use the sources under `tools/` to repeat checks against the matching plugin
 checkout; statement wrappers supply only the missing surrounding Java context.
 
-Obsolete profile migration tooling is omitted at the owner's request.
-The recommended config omits its unused legacy settings; source defaults can
-still contain them. Documentation does not claim these server tools were removed.
+The upgrade guide and profile migration commands are retained. Migration
+settings are removed from the server defaults and existing configurations;
+the local converter uses a fixed internal 256 KiB source/candidate limit.
 
 ## Before merging
 
@@ -76,7 +79,9 @@ still contain them. Documentation does not claim these server tools were removed
 
 ## URLs and review
 
-Existing page paths are retained. New guides are linked from `SUMMARY.md`.
+Existing Markdown paths are retained. `.gitbook.yaml` redirects preserve old
+published routes when the new navigation changes their URLs. New guides are
+linked from `SUMMARY.md`.
 No public archive section is added; use the Git tag to recover 1.3.0 content.
 Do not merge, enable auto-merge or update the published English space during
 preparation. Retrieve the rendered preview URL from the **current head commit's**

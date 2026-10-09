@@ -5,8 +5,8 @@ description: "Configuration Reference"
 # Configuration Reference
 
 Armature reads `plugins/Armature/config.yml`. This page reproduces the embedded
-2.0.0 recommended defaults and describes every active leaf option. Obsolete
-profile-migration settings are omitted. Existing administrator values
+2.0.0 defaults and describes every active leaf option. Profile migration uses
+internal limits and has no configurable settings. Existing administrator values
 are preserved during schema upgrades, so a live installation can differ.
 
 ## Apply a change

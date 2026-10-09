@@ -50,6 +50,16 @@ public final class WikiValidation {
     public static void main(String[] args) throws Exception {
         Path json=Path.of(args[0]); Path wiki=Path.of(args[1]);
         scratch=Files.createDirectories(Path.of(args[2]));
+        var gitbookConfig=new YamlConfiguration();
+        gitbookConfig.load(wiki.resolve(".gitbook.yaml").toFile());
+        var redirects=gitbookConfig.getConfigurationSection("redirects");
+        if(redirects==null) throw new IllegalArgumentException("GitBook redirects are missing");
+        for(var route:redirects.getKeys(false)) {
+            var target=wiki.resolve(redirects.getString(route)).normalize();
+            if(!target.startsWith(wiki.normalize()) || !Files.isRegularFile(target))
+                throw new IllegalArgumentException("Invalid redirect target: "+route);
+        }
+        System.out.println("GitBook configuration: "+redirects.getKeys(false).size()+" redirect targets checked");
         var fences=JsonParser.parseString(Files.readString(json)).getAsJsonArray();
         String all=Files.readString(json);
         var names=new TreeSet<String>();

@@ -17,6 +17,14 @@ def main():
     summary = root / 'SUMMARY.md'
     paths = re.findall(r'\]\(([^)]+\.md)\)', summary.read_text(encoding='utf-8'))
     errors = []
+    gitbook_config = root / '.gitbook.yaml'
+    if not gitbook_config.is_file():
+        errors.append('Missing .gitbook.yaml with redirects for existing published routes')
+    else:
+        redirects = gitbook_config.read_text(encoding='utf-8').split('redirects:\n', 1)[-1]
+        for old_route, target in re.findall(r'^  ([^:]+): (.+\.md)$', redirects, re.M):
+            if not (root / target).is_file():
+                errors.append(f'Redirect {old_route}: missing target {target}')
     if len(paths) != len(set(paths)):
         errors.append('Duplicate SUMMARY.md entries')
     fences = {'yaml': [], 'java': []}

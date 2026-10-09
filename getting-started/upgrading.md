@@ -42,6 +42,28 @@ profiles, variants and accessory instances. Local declarations are rejected;
 Armature does not overwrite your shared registry.
 Java `ArmaturePresentation` requests retain their inline-variable API contract.
 
+### Convert a legacy profile
+
+After moving any local variables into the shared registry, use a backed-up
+legacy file under `plugins/Armature/profiles/`:
+
+```text
+/armature config migrate sword.yml --output sword.migrated.yml
+```
+
+The converter runs locally and writes a validated modern YAML candidate;
+the source and active runtime stay unchanged. Read the command's warnings and
+manual actions, compare the output against [Profile Structure](profiles/README.md),
+and verify that every model and clip exists. Source and candidate files are
+limited internally to 256 KiB. No migration settings are exposed in `config.yml`;
+obsolete `migration` blocks are removed on startup with a configuration backup.
+
+Move the original outside the loaded profiles directory before activating its
+replacement, so duplicate profile IDs cannot compete. Then run
+`/armature profile reload` and `/armature profile inspect <player>`, equip the
+matching item and test the movement/action clips. A `.migrated.yml` file is still
+a loadable profile: review it before issuing any profile/full reload.
+
 ## Models
 
 - Existing compatible `.bbmodel` assets remain supported.
