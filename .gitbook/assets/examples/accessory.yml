@@ -1,0 +1,15 @@
+wiki_charm:
+  type: attachment
+  model: {name: wiki_charm}
+  physics: {enabled: true, frequency: 3.0, damping: 0.9}
+
+wiki_composite:
+  match: {item: minecraft:stick}
+  model: {name: wiki_player}
+  attachments:
+    charm:
+      profile: wiki_charm
+      attach-to: {bone: charm_socket}
+      when:
+        permissions:
+          any: [cosmetics.charm, cosmetics.admin]

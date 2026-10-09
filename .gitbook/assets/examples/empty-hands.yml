@@ -1,0 +1,6 @@
+wiki_empty:
+  match: {item: minecraft:air}
+  model: {name: arm_empty, hide-vanilla-hand: true}
+  animations:
+    movement:
+      - animation: base

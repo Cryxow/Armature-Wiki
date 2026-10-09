@@ -1,4 +1,8 @@
-# 🔫 WeaponMechanics
+---
+description: "WeaponMechanics"
+---
+
+# WeaponMechanics
 
 Armature detects WeaponMechanics as an optional item and action provider. WeaponMechanics remains the owner of weapon identity, ammunition, reload logic, fire mode, aiming, damage, and cooldowns. Armature translates those events into first-person presentation actions and modern profile signals.
 
@@ -15,7 +19,7 @@ m4a1:
   match:
     item: weaponmechanics:m4a1
   model:
-    name: fp_rifle
+    name: arm_rifle
     hide-vanilla-hand: true
   integrations:
     weaponmechanics:
@@ -76,7 +80,7 @@ The provider emits these presentation actions:
 | Firearm state changes     | `FIREARM_STATE`         | `weaponmechanics:firearm-state-change`             |
 | Selective fire changes    | `FIRE_MODE_CHANGE`      | `weaponmechanics:fire-mode-change`                 |
 
-Scope, fire, and reload events are main-hand presentation events. Equipment events can identify either hand.
+The adapter carries `main_hand`/`off_hand` metadata. Test the hand emitted by your installed WeaponMechanics version; do not infer it from a clip name.
 
 `weaponmechanics:reload` is sent at the low-priority input stage, before WeaponMechanics performs its normal reload path. A modern rule with `consume: true` cancels the WeaponMechanics reload event. This is the one provider signal that can prevent the provider's own gameplay action; Armature still does not implement reload logic itself.
 
@@ -141,3 +145,16 @@ animations:
 The provider namespace is also available to integrations through the presentation API. It does not make gameplay state mutable from Armature configuration.
 
 For the full built-in field list, see [Built-in conditions](../../getting-started/profiles/conditions.md) and [Built-in triggers](../../getting-started/profiles/triggers.md).
+
+
+## Verify the full weapon path
+
+The example title `m4a1`, attachment ids and model bones must exist in your own
+weapon/model definitions. `arm_rifle` must supply `fire` and `reload`; add a
+`base` movement rule for a persistent resting pose. Reload the profiles, rebuild
+and deliver the final pack, then test hip fire, aimed fire, reload start, each
+per-round phase, capacity completion, cancellation and both hands.
+
+The WeaponMechanics bone attachment override is separate from reusable
+[`type: attachment` composite profiles](../../getting-started/profiles/attachments.md).
+It changes configured bones; it does not define a reusable mounted model.

@@ -1,50 +1,62 @@
-# 👕 Custom Armors
+---
+description: "Skins & Custom Armor"
+---
 
-Armature passes player armor rendering to BetterModel. The armor texture folder name is the BetterModel armor type.
+# Skins & Custom Armor
 
-## Custom textures for vanilla armor
+## Player skins
 
-Replace the BetterModel textures in:
+Body-role bones use the player's actual classic/slim skin and its second layer.
+Blockbench uses a neutral bundled preview skin; it is not serialized into the
+project as authored cubes. Classic and slim arm widths differ, so test both.
+Authored cubes remain part of `.armature` v2 and are not automatic skin helpers.
 
-```
-plugins/BetterModel/armors/armors/<vanilla_type>/
-```
+## Equipped armor with native .armature v2
 
-Use the expected `armor.png` and, for leggings, `leggings.png` filenames. Keep the folder structure used by the BetterModel installation.
+| Role | Equipment layer |
+| --- | --- |
+| `head` | Helmet |
+| `body` | Chestplate and leggings waist |
+| Full arms, upper arms, forearms | Chestplate sleeves |
+| Full legs, thighs, lower legs | Independent leggings and boots layers |
 
-## Armor supplied by an item plugin
+Equipment updates include replacement, removal and changed item metadata.
+Duplicate roles have independent visible meshes. Dye and trim presentation uses
+the armor assets/palettes; armor visibility does not change gameplay protection.
+Split meshes follow their own bone poses and omit internal joint caps.
 
-Assume an item provider exposes:
+Legacy `.bbmodel` arm overlays keep their legacy templates. BetterModel resolves
+its own armor types and textures. The optional client mod uses its client-side
+equipment/render path: do not assume it can consume a custom texture known only
+to the server's armor-type resolver.
 
-```
-your_namespace:emerald_chestplate
-your_namespace:emerald_leggings
-```
+## Map custom items
 
-Create the matching BetterModel armor folder:
-
-```
-plugins/BetterModel/armors/armors/emerald/
-```
-
-Place the player armor textures there. The folder name `emerald` is an arbitrary BetterModel armor type; it must match the mapping value.
-
-## Map the item identities
-
-Add the custom armor item ids under `armor-mappings` in `plugins/Armature/config.yml`:
+Add this optional section to `config.yml` (use actual provider item IDs):
 
 ```yaml
 armor-mappings:
-  "your_namespace:emerald_chestplate": emerald
-  "your_namespace:emerald_leggings": emerald
+  "itemsadder:my_pack:knight_helmet": knight
+  "itemsadder:my_pack:knight_chestplate": knight
+  "itemsadder:my_pack:knight_leggings": knight
+  "itemsadder:my_pack:knight_boots": knight
 ```
 
-The key is the exact item identity returned by the item provider. The value is the BetterModel armor directory name.
+The value is an armor texture type. For native rendering, store
+`armor.png` and `leggings.png` under
+`plugins/Armature/armors/armors/knight/`. The chestplate/helmet/boots texture uses
+`armor.png`; the leggings layer uses `leggings.png`. Keep the expected armor UV
+layout. A mapping may target a custom type or override a vanilla type.
 
-Apply the mapping with:
+With the BetterModel compatibility backend, the corresponding directory is
+`plugins/BetterModel/armors/armors/knight/`. Do not assume a file in one renderer's
+directory is automatically installed for the other renderer.
 
-```
-/armature reload all
-```
+## Apply and verify
 
-This mapping affects presentation only. It does not create items, change armor slots, or alter the gameplay plugin's armor state.
+Run `/armature config reload` after mappings change, rebuild Armature assets,
+regenerate the provider final pack and download it. Test each equipment slot,
+mixed leggings/boots materials, dyed leather, trims, removal and moving joints.
+If the texture is missing, check both the selected identity/type and the final
+pack references. [Bone roles](../getting-started/models/bone-roles.md) explains
+which body layers are generated.

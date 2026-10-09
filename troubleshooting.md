@@ -1,125 +1,38 @@
-# 🔭 Troubleshooting
+---
+description: "Troubleshooting"
+---
 
-## Plugin does not enable
+# Troubleshooting
 
-Check the startup order and dependencies:
+Start with a minimal profile and a known loaded model. Keep the exact model,
+profile, server/client versions and final provider pack that reproduce the
+problem. Change one variable at a time.
 
-* BetterModel is installed and enabled.
-* PacketEvents is installed and enabled.
-* The server runs a supported Paper or Folia version with Java 25.
-* The Armature jar is the current build and not an old standalone addon jar.
+| Symptom | Check first | Next step |
+| --- | --- | --- |
+| No presentation | Runtime/player enabled, item identity, selected profile, loaded model, accepted pack | Profile inspection, model inspection, doctor |
+| Missing/pink texture | Actual final provider ZIP, namespace/path and target pack definitions | [Resource Packs](configuration/resource-packs.md) |
+| Wrong animation | Exact case-sensitive clip name, rule condition/trigger, protected action and cooldown | [Action Rules](getting-started/profiles/actions.md) |
+| Wrong movement | Most-specific matching rule, declaration tie order, loop/start/end assets | [Movement Rules](getting-started/profiles/movement.md) |
+| Item/arm displaced | Role assignment, pivots, mirrored hand clip, saved bone override | [Bone Roles](getting-started/models/bone-roles.md), [editor](getting-started/in-game-editor.md) |
+| Model disappears inside blocks | Anti-clipping and exact shader/graphics path | [Rendering & Camera](configuration/rendering-camera.md) |
+| Camera rotation absent | Camera role/element, enabled camera rotation and supported client graphics | Rendering & Camera |
+| Skin/armor incorrect | Classic/slim role, player equipment, armor mapping and texture path | [Skins & Custom Armor](advanced/custom-armors.md) |
+| Attachment missing | Native backend, referenced attachment ID/bone, condition, depth/entity budget | [Attachments](getting-started/profiles/attachments.md) |
+| Renderer changes unexpectedly | Client preference/readiness, composite fallback, pending pack reload | [Client Rendering & Fallback](client-mod/rendering-fallback.md) |
+| `.armature` rejected | Strict v2, normal plugin Save, duplicate/invalid roles, exporter diagnostics | [Saving & Deploying](getting-started/models/saving-deploying.md) |
 
-The startup summary reports detected item providers, action providers, integrations, renderer flags, and resource-pack generation. Missing optional plugins are not fatal.
+## A short reproducible check
 
-## Model is invisible
+1. Run `/armature diagnostics doctor`; fix errors before adjusting cosmetics.
+2. Validate config without applying it: `/armature config validate`.
+3. Inspect the held item/profile and model using the commands in
+   [Diagnostics](troubleshooting/diagnostics.md).
+4. Rebuild Armature/provider assets and accept the provider's final pack.
+5. Test after a full server restart where required. A Bukkit `/reload` is not
+   proof of a clean startup or renderer/dependency change.
+6. Retest with optional client rendering disabled. Record which path fails.
 
-Check all of the following:
-
-1. `render.enabled: true`.
-2. The profile item identity matches the actual held item.
-3. `model.name` matches the `.bbmodel` filename.
-4. The model is in `plugins/Armature/models/`.
-5. The profile is valid and loaded by `/armature reload profiles`.
-6. The client accepted the generated resource pack.
-
-For a modern profile, the model binding must look like:
-
-```yaml
-match:
-  item: weaponmechanics:m4a1
-model:
-  name: fp_rifle
-```
-
-## Animation does not play
-
-Use the exact BetterModel animation id. Check the reload report for unavailable assets. Armature rejects BetterModel's reserved names `idle`, `walk`, `idle_fly`, `walk_fly`, `spawn`, and `jump` in profile definitions.
-
-For modern rules, verify the channel and shape:
-
-* movement rules use `animations.movement` and require a looping animation;
-* action rules use `animations.actions` and a finite animation;
-* additive rules use `animations.additives`;
-* external events use a namespaced `trigger`;
-* a condition's dynamic right-hand path has a `$` prefix.
-
-Example:
-
-```yaml
-condition: weaponmechanics.ammo == $weaponmechanics:magazine-size
-```
-
-An unprefixed path-like right-hand value is a literal string.
-
-## Profile validation warnings
-
-The modern loader fails invalid files closed and keeps valid files active. Common causes are:
-
-* a profile id containing spaces or characters outside the normalized `[a-z0-9][a-z0-9._-]*` form;
-* missing `match` or `model.name`;
-* mixing structured `match.item` with `match.items`, `families`, or `patterns`;
-* an unsupported root key such as legacy `definitions`, top-level `actions`, or `triggers`;
-* a non-finite numeric value;
-* unsupported additive interpolation such as `bezier`.
-
-The loader reports the file and field. Fix the YAML, then run `/armature reload profiles`.
-
-## Console contains additive-animation warnings
-
-Warnings such as `unsupported interpolation 'bezier'` mean the additive catalog could not parse that clip. Use a supported Blockbench interpolation or remove the additive reference. A malformed numeric keyframe, for example a non-finite `z` value, must also be corrected in the `.bbmodel`.
-
-These warnings do not mean every normal animation failed. The reload report identifies unavailable configured assets.
-
-## WeaponMechanics events do not match
-
-Check that:
-
-* the WeaponMechanics title is used in the profile selector;
-* the provider is detected at startup;
-* the action rule uses the `weaponmechanics:` namespace;
-* the hand value is `main_hand` or `off_hand`;
-* reload rules distinguish `reload-start`, `reload-phase`, `reload-complete`, and `reload-cancel`.
-
-Armature emits reload complete only when the magazine reaches capacity, not after every WeaponMechanics per-round completion callback.
-
-## Tracker stops updating
-
-Enable only the relevant diagnostics:
-
-```yaml
-debug:
-  enabled: true
-  tracker-lifecycle: true
-  animations: true
-```
-
-Reproduce with one player and inspect `/armature status`. A tracker may be rebuilding after a transient BetterModel or teleport condition; the recovery lifecycle is intentionally guarded against duplicate sessions. Disable debug logging after collecting the report.
-
-## Resource-pack or shader issue
-
-Run `/armature reload pack`, reconnect the client, and confirm that the generated pack is accepted. Anti-clipping, FOV lock, Y lock, and optional camera rotation depend on generated assets and client shader compatibility. Camera rotation additionally requires the model's `s_camera` bone and a supported Fabulous client.
-
-## Empty hand shows the wrong item
-
-Check `render.vanilla-item-mode`:
-
-* `mask` uses the packet-side invisible item and is the default.
-* `source-model` edits the source item model in the generated pack.
-
-PacketEvents is required for the mask path. Enable `debug.empty-hand-mask` only while inspecting slot and mask state.
-
-## API or scripting operation fails
-
-Check `ArmatureApi.isAvailable()` before optional integrations call the API. Inspect the returned status:
-
-* `NO_PROFILE` or `PROFILE_NOT_ACTIVE`: the held item does not render the requested profile;
-* `NO_ANIMATION`: the asset is absent or unavailable;
-* `PLAYER_UNAVAILABLE`: the player cannot be scheduled;
-* `COOLDOWN` or `NOT_CANCELABLE`: runtime arbitration rejected the request;
-* `HANDLE_NOT_ACTIVE`: a channel handle is stale.
-
-All operations return a future and are scheduled on the player's scheduler. Do not call Bukkit or BetterModel from an arbitrary async continuation.
-
-## Safe report
-
-Include Armature version, Minecraft/Paper/Folia version, Java version, BetterModel and PacketEvents versions, detected providers, the relevant profile, configuration, reload warnings, and debug output from one affected player. Remove private paths, tokens, and player names before sharing.
+Do not fix a pack failure by changing an already-correct item matcher. Do not
+remove a protected action merely to hide a lost reload/end signal. Find the
+first incorrect step in item identity → selection → model → pack → rendering.

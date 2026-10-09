@@ -1,0 +1,10 @@
+wiki_shield:
+  match: {item: minecraft:shield}
+  model:
+    name: wiki_player
+    held-item: {mode: static}
+  animations:
+    movement:
+      - animation: base
+      - when: item.using == true
+        animation: block

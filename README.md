@@ -4,69 +4,45 @@ coverY: 0
 coverHeight: 318
 ---
 
-# 📘 Introduction
+# Introduction
 
-Armature 1.3.0 is a first-person presentation engine for Paper and Folia. It
-binds a BetterModel rig to the item held by a player, evaluates movement and
-event rules, and renders finite actions, persistent loops, and additive pose
-layers.
+Armature **2.0.0** is a first-person presentation engine for Paper and Folia.
+It selects item profiles, renders animated player limbs and held items, combines
+movement, actions and additive layers, and generates the presentation assets.
 
-Armature controls presentation only. It does not own item stacks, ammo,
-reloads, damage, projectiles, cooldowns, mana, or gameplay cancellation. Those
-responsibilities stay with Minecraft and the gameplay/provider plugin.
+The **native renderer is the primary engine** and the default. It supports
+strict `.armature` v2 and compatible `.bbmodel` models without BetterModel.
+BetterModel remains an optional compatibility backend; deprecation is planned
+for future releases. Existing explicit backend selections are preserved.
 
-## Requirements
+Armature controls presentation. Minecraft and gameplay plugins retain item
+inventories, ammo, damage, projectiles, reload logic and cooldown authority.
+An animation named `fire` does not fire a weapon.
 
-* Paper or Folia using the 1.21.8 API line or newer, with a Java 25 runtime.
-* [BetterModel](https://modrinth.com/plugin/bettermodel), required for model
-  rendering.
-* [PacketEvents](https://modrinth.com/plugin/packetevents), required by the
-  first-person input and client presentation path.
-* A client that accepts the generated Armature resource pack.
+## Choose your starting point
 
-Optional providers and integrations are detected at startup:
+- **Server administrator:** [Installation](getting-started/installation.md), then
+  [Your first presentation](getting-started/first-presentation.md).
+- **Model creator:** [Install the Blockbench plugin](getting-started/models/installing-plugin.md),
+  then [Create a model](getting-started/blockbench-model.md).
+- **Profile author:** [Profile structure](getting-started/profiles/README.md),
+  then [Complete examples](getting-started/profiles/examples.md).
+- **Plugin developer:** [Public API](advanced/public-api.md).
+- **Existing installation:** [Upgrade to 2.0.0](getting-started/upgrading.md).
 
-* Item identity: WeaponMechanics, QualityArmory, ItemsAdder, CraftEngine, and
-  Nexo.
-* Action provider: WeaponMechanics.
-* Automation/API integrations: Skript, MythicMobs, and Denizen.
+## What changes in 2.0.0
 
-Install the optional plugin before starting Armature when its item identities,
-events, or scripting syntax are required. Armature remains presentation-only
-when an optional plugin is absent.
+| Capability | Where to learn more |
+| --- | --- |
+| Native rendering and explicit body/item/camera roles | [Bone roles](getting-started/models/bone-roles.md) |
+| Official Armature Blockbench workflow | [Model creation](getting-started/blockbench-model.md) |
+| Independent main-hand/offhand presentation and two-arm rules | [Hands](getting-started/profiles/hands.md) |
+| Global typed variables, conditions and conditional variants | [Variables](getting-started/profiles/variables.md), [Variants](getting-started/profiles/variants.md) |
+| Reusable animated accessories and nested composite models | [Attachments](getting-started/profiles/attachments.md) |
+| Optional Fabric rendering at client frame rate | [Client mod](client-mod/installation.md) |
+| Provider-generated packs and an optional separate renderer pack | [Resource packs](configuration/resource-packs.md) |
 
-## Start here
-
-1. Import a model into <code>plugins/Armature/models/</code>.
-2. Create a modern profile in <code>plugins/Armature/profiles/</code>.
-3. Match the real item identity and set <code>model.name</code>.
-4. Bind movement, action, and additive rules under <code>animations</code>.
-5. Run <code>/armature reload</code> and apply the generated resource pack.
-
-The [Profiles](getting-started/profiles/README.md) page contains the complete
-modern YAML shape. [Built-in conditions](getting-started/profiles/conditions.md)
-and [Built-in triggers](getting-started/profiles/triggers.md) list the full
-runtime vocabulary.
-
-## What changed in 1.3.0
-
-The 1.3.0 line adds:
-
-* modern anonymous profile rules with typed variables, conditions, variants,
-  movement transitions, additive blending, and provider namespaces;
-* a channel-aware public Java API with lifecycle events, handles, snapshots,
-  catalogs, and bounded typed signal data;
-* bundled Skript, MythicMobs, and Denizen adapters;
-* expanded WeaponMechanics fire, aim, reload, firearm-state, and fire-mode
-  signals;
-* deterministic and optional AI-assisted legacy-profile migration;
-* live Paper Dialog bone editing with persistent profile/item overrides;
-* generated anti-clipping, viewmodel FOV lock, viewmodel Y lock, and optional
-  camera-rotation resource-pack paths;
-* safer Folia/player lifecycle recovery while keeping the BetterModel carrier
-  mounted on the owning client.
-
-See [Supported plugins](advanced/supported-plugins/README.md) for provider
-details and [Public API](advanced/public-api.md) for integration code.
-
-<div align="left"><figure><img src=".gitbook/assets/MinecraftNeoForge_1.21.11-Multiplayer3rd-partyServer2026-08-1111-59-57-ezgif.com-optimize.gif" alt=""><figcaption></figcaption></figure> <figure><img src=".gitbook/assets/MinecraftNeoForge_1.21.11-Multiplayer3rd-partyServer2026-08-1111-59-37-ezgif.com-optimize.gif" alt=""><figcaption></figcaption></figure></div>
+The modern profile format, public API and scripting integrations continue to be
+available. [Supported plugins](advanced/supported-plugins/README.md) distinguishes
+item detection, events and resource-pack delivery instead of treating them as
+one capability.
