@@ -1,0 +1,254 @@
+{
+  "redirects": [
+    {
+      "source": "/introduction",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "XhoyX7dXl6Y3Qy3hss0S"
+      }
+    },
+    {
+      "source": "/troubleshooting",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "48AbiCZfOF5soP6i6ZXO"
+      }
+    },
+    {
+      "source": "/getting-started/configuration",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "Rcn7ONrkjeu5OXGysaTI"
+      }
+    },
+    {
+      "source": "/getting-started/blockbench-model",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "OPWoBBqMP8T7LqApieL5"
+      }
+    },
+    {
+      "source": "/getting-started/in-game-editor",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "5fJkzmdLL3FtdFDMvCFf"
+      }
+    },
+    {
+      "source": "/getting-started/profiles",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "NdMXrFGdXO8PLdVXYopZ"
+      }
+    },
+    {
+      "source": "/getting-started/profiles/grouping-items",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "Ge9g3MtabAGRxW0bzWtR"
+      }
+    },
+    {
+      "source": "/getting-started/profiles/conditions",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "zsSLnF8bUmpjE22ZrFOm"
+      }
+    },
+    {
+      "source": "/getting-started/profiles/triggers",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "O3B61yMpwWdw6KZoRRBP"
+      }
+    },
+    {
+      "source": "/advanced/custom-armors",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "7gI4MPAh4RXqJZiQhqfH"
+      }
+    },
+    {
+      "source": "/advanced/best-settings",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "7oeF9C9zoNHH8tBSwp96"
+      }
+    },
+    {
+      "source": "/advanced/public-api",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "sSVSpwHgFccJ73t5Elbp"
+      }
+    },
+    {
+      "source": "/advanced/public-api/setup",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "EU4hXMsFV3P3GyKINwtc"
+      }
+    },
+    {
+      "source": "/advanced/public-api/animations",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "io3OA5YopO0gVMaOvoLH"
+      }
+    },
+    {
+      "source": "/advanced/public-api/signals",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "jbdE3gLpPbzRqN3FnjjC"
+      }
+    },
+    {
+      "source": "/advanced/public-api/providers",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "hTSMwN02znKmKmVom1Yu"
+      }
+    },
+    {
+      "source": "/advanced/public-api/examples",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "TUtD3lsUJTeR2RgZ61xL"
+      }
+    },
+    {
+      "source": "/advanced/supported-plugins",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "pOu9zrFYa2isKFpqhjvv"
+      }
+    },
+    {
+      "source": "/advanced/supported-plugins/itemsadder",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "fw6A461tOcES0aWSzq8d"
+      }
+    },
+    {
+      "source": "/advanced/supported-plugins/nexo",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "jBYWnmgI4VkKunyaJZnI"
+      }
+    },
+    {
+      "source": "/advanced/supported-plugins/craftengine",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "VzwzrMYtHFVVZzt6owEW"
+      }
+    },
+    {
+      "source": "/advanced/supported-plugins/weaponmechanics",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "GMhe4nAwWl1PXns75ZR2"
+      }
+    },
+    {
+      "source": "/advanced/supported-plugins/skript",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "R4z9FNYSnMEQABU34FRt"
+      }
+    },
+    {
+      "source": "/advanced/supported-plugins/mythicmobs",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "nCJhH2BhKxdIe73xvsFr"
+      }
+    },
+    {
+      "source": "/advanced/supported-plugins/denizen",
+      "intent": "draft",
+      "permanent": true,
+      "destination": {
+        "kind": "site-page",
+        "siteSpaceId": "sitesp_iGBxN",
+        "pageId": "WkYAj7AcswPjPDIi7fWE"
+      }
+    }
+  ]
+}

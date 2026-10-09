@@ -25,6 +25,9 @@ before publication. French and Russian branches/spaces are outside this change.
   top-level sections and 53 pages, including a detailed Molang reference.
 - GitBook configuration has 25 redirects for changed published routes; target
   files are syntax/structurally checked with the same validation workflow.
+- The GitBook site has matching **draft-only** redirect rules, prepared via
+  `bulkUpsertSiteRedirects` with `intent: draft`. The input is retained in
+  `tools/gitbook-redirects-draft.json`; no live redirect was created.
 - Run `python tools/validate_wiki.py --output <scratch-directory>` to check
   navigation, local links/assets, headings and fences and extract examples.
 - All documented YAML fences are syntax-loaded with Paper's `YamlConfiguration`.
@@ -54,6 +57,13 @@ Paper**, **21 Java fences** compiled and **5 model sources** compiled natively.
 Use the sources under `tools/` to repeat checks against the matching plugin
 checkout; statement wrappers supply only the missing surrounding Java context.
 
+GitBook preview audit: all 53 navigation destinations returned HTTP 200.
+Representative pages render code blocks, tables, current Blockbench captures,
+legacy WeaponMechanics media and the resource-pack Mermaid diagram. Some
+historical aliases, including `/advanced/public-api/setup` and README aliases,
+still return 404 in the revision preview; the draft site redirects are not live.
+Publish and verify those redirects together with the final documentation.
+
 The upgrade guide and profile migration commands are retained. Migration
 settings are removed from the server defaults and existing configurations;
 the local converter uses a fixed internal 256 KiB source/candidate limit.
@@ -66,6 +76,8 @@ the local converter uses a fixed internal 256 KiB source/candidate limit.
 - [ ] Recheck the exact supported server/client/version matrix against released artifacts.
 - [ ] Rebase/synchronize the documentation branch with current `main` without replacing public docs early.
 - [ ] Inspect the latest GitBook preview for navigation, code, tables, images and Mermaid.
+- [ ] After the documentation release, publish the prepared GitBook draft redirects;
+      verify all 25 old routes against their new destinations and avoid redirect loops.
 - [ ] On a clean Paper/Folia test server, replay **Your First Presentation** with final pack delivery.
 - [ ] Load both family-selector examples with the live Paper registries.
 - [ ] Install final Blockbench Desktop/Cameras/Armature extension; save/reopen the tutorial model.
