@@ -25,7 +25,7 @@ layout:
     visible: true
 ---
 
-# ItemsAdder
+# 🧰 ItemsAdder
 
 Install ItemsAdder beside Armature and create the custom item identified below
 using that plugin's own configuration. The Armature example uses the shipped

@@ -2,7 +2,7 @@
 description: "Client Rendering & Fallback"
 ---
 
-# Client Rendering & Fallback
+# 🖥️ Client Rendering & Fallback
 
 The server still chooses profiles, variants, clips, conditions, visibility,
 held-item visuals and action timing. The client draws the selected presentation

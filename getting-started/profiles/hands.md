@@ -2,7 +2,7 @@
 description: "Main Hand & Offhand"
 ---
 
-# Main Hand & Offhand
+# 👐 Main Hand & Offhand
 
 Armature maintains presentation context for each hand. Selectors, provider item
 identities and held-item conditions resolve against the owning hand; event hand

@@ -3,7 +3,7 @@ cover: ../../.gitbook/assets/nexo.png
 coverY: 0
 ---
 
-# Nexo
+# 💎 Nexo
 
 Install Nexo beside Armature and create the custom item identified below
 using that plugin's own configuration. The Armature example uses the shipped

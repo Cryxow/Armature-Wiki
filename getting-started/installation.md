@@ -2,7 +2,7 @@
 description: "Installation & Requirements"
 ---
 
-# Installation & Requirements
+# 📥 Installation & Requirements
 
 ## Requirements
 

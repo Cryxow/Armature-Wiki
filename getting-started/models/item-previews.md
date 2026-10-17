@@ -2,7 +2,7 @@
 description: "Item & Resource-pack Previews"
 ---
 
-# Item & Resource-pack Previews
+# 🔎 Item & Resource-pack Previews
 
 ![Current item preview dialog](../../.gitbook/assets/blockbench-item-preview-v2.png)
 

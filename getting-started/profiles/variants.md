@@ -2,7 +2,7 @@
 description: "Variants"
 ---
 
-# Variants
+# 🎨 Variants
 
 A variant selects a presentation within one active item profile. The first
 eligible variant in YAML declaration order wins; no match uses the base.

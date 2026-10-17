@@ -2,7 +2,7 @@
 description: "Resource Packs"
 ---
 
-# Resource Packs
+# 📦 Resource Packs
 
 ## From authored files to the downloaded pack
 

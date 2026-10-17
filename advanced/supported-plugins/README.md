@@ -2,7 +2,7 @@
 description: "Supported Plugins"
 ---
 
-# Supported Plugins
+# 🔗 Supported Plugins
 
 Integrations are optional. Armature presents an item; its owning plugin supplies
 identity, gameplay and, where applicable, final resource-pack delivery.

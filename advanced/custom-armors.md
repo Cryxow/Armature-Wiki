@@ -2,7 +2,7 @@
 description: "Skins & Custom Armor"
 ---
 
-# Skins & Custom Armor
+# 🛡️ Skins & Custom Armor
 
 ## Player skins
 

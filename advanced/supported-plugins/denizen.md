@@ -2,7 +2,7 @@
 description: "Denizen"
 ---
 
-# Denizen
+# 🤖 Denizen
 
 Armature's Denizen adapter is embedded in `Armature.jar`. When Denizen is installed and Armature's public API is available, the adapter registers one native `armature` command and the animation lifecycle event family.
 

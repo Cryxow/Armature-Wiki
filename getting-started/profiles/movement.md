@@ -2,7 +2,7 @@
 description: "Movement Rules"
 ---
 
-# Movement Rules
+# 🏃 Movement Rules
 
 Movement rules use `when`. Armature evaluates matching rules, selects the most
 specific condition, and uses declaration order only as the final tie-breaker.

@@ -2,7 +2,7 @@
 description: "Bone Roles & Player Body"
 ---
 
-# Bone Roles & Player Body
+# 🦴 Bone Roles & Player Body
 
 | Role | Meaning |
 | --- | --- |

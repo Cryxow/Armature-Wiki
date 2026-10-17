@@ -2,7 +2,7 @@
 description: "Configuration Reference"
 ---
 
-# Configuration Reference
+# ⚙️ Configuration Reference
 
 Armature reads `plugins/Armature/config.yml`. This page reproduces the embedded
 2.0.0 defaults and describes every active leaf option. Profile migration uses

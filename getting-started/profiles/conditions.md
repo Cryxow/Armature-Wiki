@@ -2,7 +2,7 @@
 description: "Conditions"
 ---
 
-# Conditions
+# 🔀 Conditions
 
 This document defines the built-in condition vocabulary for modern item
 animation profiles. The parser and runtime implement the core values below;

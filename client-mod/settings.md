@@ -2,7 +2,7 @@
 description: "Settings & Known Limitations"
 ---
 
-# Settings & Known Limitations
+# 🎚️ Settings & Known Limitations
 
 With Mod Menu, open **Mods → Armature Client → Configure**. The current settings
 screen exposes one preference: client rendering enabled. Without Mod Menu,

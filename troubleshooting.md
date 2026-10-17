@@ -2,7 +2,7 @@
 description: "Troubleshooting"
 ---
 
-# Troubleshooting
+# 🩺 Troubleshooting
 
 Start with a minimal profile and a known loaded model. Keep the exact model,
 profile, server/client versions and final provider pack that reproduce the

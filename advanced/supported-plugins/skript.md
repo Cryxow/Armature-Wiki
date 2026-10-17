@@ -2,7 +2,7 @@
 description: "Skript"
 ---
 
-# Skript
+# 📜 Skript
 
 Armature's Skript adapter is embedded in the distribution `Armature.jar`. Install `Skript` beside Armature; the syntax is registered only when both Armature's public API and Skript are available.
 

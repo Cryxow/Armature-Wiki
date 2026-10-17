@@ -2,7 +2,7 @@
 description: "MythicMobs"
 ---
 
-# MythicMobs
+# 🐉 MythicMobs
 
 Armature's MythicMobs adapter is embedded in `Armature.jar`. Install `MythicMobs` beside Armature; it registers its mechanics and lifecycle triggers only when the public Armature API and MythicMobs are available.
 

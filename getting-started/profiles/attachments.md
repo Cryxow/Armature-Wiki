@@ -2,7 +2,7 @@
 description: "Attachments & Composite Models"
 ---
 
-# Attachments & Composite Models
+# 🧩 Attachments & Composite Models
 
 A composition mounts independent models onto bones in a principal model.
 It differs from toggling existing bones through a gameplay-plugin attachment

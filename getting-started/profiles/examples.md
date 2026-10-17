@@ -2,7 +2,7 @@
 description: "Complete Examples"
 ---
 
-# Complete Examples
+# 🧪 Complete Examples
 
 Each example is a complete profile file, not a fragment for `config.yml`.
 Enable one matching example at a time and remove overlapping default/tutorial

@@ -2,7 +2,7 @@
 description: "Rendering & Camera"
 ---
 
-# Rendering & Camera
+# 🎥 Rendering & Camera
 
 ## Renderer and visibility
 

@@ -2,7 +2,7 @@
 description: "Developer API Overview"
 ---
 
-# Developer API Overview
+# 💻 Developer API Overview
 
 Use `com.armaturemc.api` to request presentation from a plugin that owns gameplay.
 No BetterModel or Armature implementation imports are required. The API is

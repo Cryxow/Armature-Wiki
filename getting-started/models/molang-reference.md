@@ -2,7 +2,7 @@
 description: "Molang Reference"
 ---
 
-# Molang Reference
+# 📖 Molang Reference
 
 This is the native **implemented subset**, shared by server and client samplers.
 It is not a general Bedrock scripting engine. Queries depend on the context

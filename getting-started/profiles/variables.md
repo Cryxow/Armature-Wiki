@@ -2,7 +2,7 @@
 description: "Shared Variables & PlaceholderAPI"
 ---
 
-# Shared Variables & PlaceholderAPI
+# 🔤 Shared Variables & PlaceholderAPI
 
 Only `plugins/Armature/variables.yml` declares YAML variables:
 

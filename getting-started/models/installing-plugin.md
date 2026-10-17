@@ -2,7 +2,7 @@
 description: "Installing the Armature Blockbench Plugin"
 ---
 
-# Installing the Armature Blockbench Plugin
+# 🔌 Installing the Armature Blockbench Plugin
 
 Use **Blockbench Desktop 5.0+**, the official **Cameras** plugin, and the Armature
 Blockbench extension matching your model-format workflow. The extension is a

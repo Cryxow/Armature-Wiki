@@ -2,7 +2,7 @@
 description: "Creating Your First Model"
 ---
 
-# Creating Your First Model
+# 🧱 Creating Your First Model
 
 Install [the Armature extension](models/installing-plugin.md) and the official
 Cameras plugin before starting. This tutorial uses explicit roles in `.armature`

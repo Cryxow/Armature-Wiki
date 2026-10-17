@@ -2,7 +2,7 @@
 description: "Triggers"
 ---
 
-# Triggers
+# ⚡ Triggers
 
 Triggers are instantaneous namespaced signals. Continuous state belongs in
 `animations.movement` or `animations.additives`; it must not fire an action on

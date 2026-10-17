@@ -2,7 +2,7 @@
 description: "Examples"
 ---
 
-# Examples
+# 📝 Examples
 
 ## Complete standalone integration
 

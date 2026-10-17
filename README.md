@@ -4,7 +4,7 @@ coverY: 0
 coverHeight: 318
 ---
 
-# Introduction
+# 👋 Introduction
 
 Armature **2.0.0** is a first-person presentation engine for Paper and Folia.
 It selects item profiles, renders animated player limbs and held items, combines

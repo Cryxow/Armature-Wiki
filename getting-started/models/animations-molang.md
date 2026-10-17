@@ -2,7 +2,7 @@
 description: "Animations & Molang"
 ---
 
-# Animations & Molang
+# 🎞️ Animations & Molang
 
 ## Author clips
 

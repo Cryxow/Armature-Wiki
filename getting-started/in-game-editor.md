@@ -2,7 +2,7 @@
 description: "In-game Bone Editor"
 ---
 
-# In-game Bone Editor
+# 🎛️ In-game Bone Editor
 
 The editor changes presentation offsets without editing your source model or
 profile. Hold an item with an active profile and run `/armature editor` with

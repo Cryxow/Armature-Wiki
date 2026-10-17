@@ -2,7 +2,7 @@
 description: "Commands & Permissions"
 ---
 
-# Commands & Permissions
+# ⌨️ Commands & Permissions
 
 Armature registers one Paper `BasicCommand` through the lifecycle command
 registrar. The root command is `/armature`; Paper also exposes `/arm` and

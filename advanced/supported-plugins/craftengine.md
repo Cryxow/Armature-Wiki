@@ -4,7 +4,7 @@ coverY: 0
 coverHeight: 243
 ---
 
-# CraftEngine
+# 🛠️ CraftEngine
 
 Install CraftEngine beside Armature and create the custom item identified below
 using that plugin's own configuration. The Armature example uses the shipped

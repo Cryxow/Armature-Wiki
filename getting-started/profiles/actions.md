@@ -2,7 +2,7 @@
 description: "Action Rules"
 ---
 
-# Action Rules
+# 🎬 Action Rules
 
 Actions use an event `trigger` and optional `condition`:
 

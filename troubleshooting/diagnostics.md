@@ -2,7 +2,7 @@
 description: "Diagnostics & Performance"
 ---
 
-# Diagnostics & Performance
+# 📊 Diagnostics & Performance
 
 Use the command reference for exact arguments and permissions. Start with:
 

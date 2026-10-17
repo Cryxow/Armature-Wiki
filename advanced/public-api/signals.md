@@ -2,7 +2,7 @@
 description: "Signals"
 ---
 
-# Signals
+# 📡 Signals
 
 Plugins can send a namespaced signal through modern `animations.actions` rules.
 The legacy `bindings` map (and compatible `triggers` map) is still accepted by

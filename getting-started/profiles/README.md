@@ -2,7 +2,7 @@
 description: "Profile Structure"
 ---
 
-# Profile Structure
+# 🗂️ Profile Structure
 
 Profiles are YAML files below `plugins/Armature/profiles/**/*.yml`. Every root
 key is a globally unique profile ID; file/folder names do not scope references.

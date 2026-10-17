@@ -2,7 +2,7 @@
 description: "Providers"
 ---
 
-# Providers
+# 🔧 Providers
 
 Most integrations only need the animation facade. Use the provider contracts
 when your plugin must teach Armature how to identify its items or must bridge

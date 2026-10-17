@@ -2,7 +2,7 @@
 description: "Held-item Visuals"
 ---
 
-# Held-item Visuals
+# 🗡️ Held-item Visuals
 
 The visual state belongs to the profile and is independent of the arm animation.
 Only Armature's displayed copy changes; the player's inventory item and its

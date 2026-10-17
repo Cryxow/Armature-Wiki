@@ -23,6 +23,10 @@ before publication. French and Russian branches/spaces are outside this change.
 
 - Navigation preserves existing Markdown page paths and assets, with eight
   top-level sections and 53 pages, including a detailed Molang reference.
+  Navigation now has 28 direct section pages and 25 subpages, with one level
+  of page nesting. Every page and section title starts with a topic emoji.
+  Detailed configuration, model, profile, integration, API and troubleshooting
+  pages sit below their relevant overview; entry guides remain directly accessible.
 - GitBook configuration has 25 redirects for changed published routes; target
   files are syntax/structurally checked with the same validation workflow.
 - The GitBook site has matching **draft-only** redirect rules, prepared via

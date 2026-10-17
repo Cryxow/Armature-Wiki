@@ -2,7 +2,7 @@
 description: "Upgrading to 2.0.0"
 ---
 
-# Upgrading to 2.0.0
+# 🔄 Upgrading to 2.0.0
 
 ## Before replacing the JAR
 

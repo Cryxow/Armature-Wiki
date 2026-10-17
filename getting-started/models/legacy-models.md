@@ -2,7 +2,7 @@
 description: "Legacy Models & BetterModel"
 ---
 
-# Legacy Models & BetterModel
+# 🕰️ Legacy Models & BetterModel
 
 ## Format and backend matrix
 

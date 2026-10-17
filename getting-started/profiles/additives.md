@@ -2,7 +2,7 @@
 description: "Additive Layers"
 ---
 
-# Additive Layers
+# ➕ Additive Layers
 
 Additives are evaluated continuously and composed by Armature on top of the
 current rendered movement/action pose. They are not action modes:

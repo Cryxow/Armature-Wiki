@@ -2,7 +2,7 @@
 description: "Your First Presentation"
 ---
 
-# Your First Presentation
+# 🚀 Your First Presentation
 
 This tutorial uses `models/default/arm_sword.bbmodel`, shipped by Armature,
 and its existing `base`, `swing`, `equip` and `unequip` clips. You can use a legacy

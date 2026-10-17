@@ -2,7 +2,7 @@
 description: "FAQ & Compatibility"
 ---
 
-# FAQ & Compatibility
+# ❓ FAQ & Compatibility
 
 ## Does Armature implement weapon gameplay?
 

@@ -2,7 +2,7 @@
 description: "WeaponMechanics"
 ---
 
-# WeaponMechanics
+# 🔫 WeaponMechanics
 
 Armature detects WeaponMechanics as an optional item and action provider. WeaponMechanics remains the owner of weapon identity, ammunition, reload logic, fire mode, aiming, damage, and cooldowns. Armature translates those events into first-person presentation actions and modern profile signals.
 

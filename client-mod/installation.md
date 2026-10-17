@@ -2,7 +2,7 @@
 description: "Installation & Compatibility"
 ---
 
-# Installation & Compatibility
+# 📲 Installation & Compatibility
 
 The Fabric mod is **optional**. Players without it keep the native server
 renderer. Use the client JAR built for the exact Minecraft release in this
