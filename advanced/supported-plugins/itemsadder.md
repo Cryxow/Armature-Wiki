@@ -25,56 +25,60 @@ layout:
     visible: true
 ---
 
-# 🟪 ItemsAdder
+# 🧰 ItemsAdder
 
-Armature detects ItemsAdder as an item identity provider. The provider resolves
-the ItemsAdder namespaced id from the held custom item and keeps the original
-ItemsAdder item as the gameplay source.
+Install ItemsAdder beside Armature and create the custom item identified below
+using that plugin's own configuration. The Armature example uses the shipped
+`arm_sword` model; it does not create the custom gameplay item.
 
-## Modern profile
+## Complete profile
 
-Use the exact ItemsAdder id returned by ItemsAdder:
-
-~~~yaml
-ia_test_item:
+```yaml
+wiki_itemsadder:
   match:
-    item: your_namespace:custom_item
+    item: itemsadder:my_pack:wiki_sword
   model:
-    name: fp_custom_item
+    name: arm_sword
     hide-vanilla-hand: true
   animations:
+    movement:
+      - animation: base
     actions:
       - trigger: player:attack
         animation:
-          name: armature_swing
-          duration: 6t
-~~~
+          name: swing
+          duration: 8t
+```
 
-The old root-level <code>item</code>, scalar <code>model</code>, and
-root-level <code>hide-vanilla-hand</code> shape belongs to the legacy loader.
-New profiles use <code>match.item</code>, <code>model.name</code>, and
-<code>model.hide-vanilla-hand</code>.
+Save under `plugins/Armature/profiles/`, reload profiles, obtain that exact
+provider item and inspect the matched profile. Swing it: the expected clip is
+`swing`. Test both hands if the item can be held in either.
 
-## First-person item masking
+## Resource-pack workflow
 
-With <code>render.vanilla-item-mode: mask</code>, Armature asks ItemsAdder for
-a copy of the custom item and applies the generated Armature invisible
-<code>item-model</code> to the first-person packet. The original inventory
-item and its gameplay identity are not replaced.
 
-If the model should show the item itself, set
-<code>model.hide-vanilla-hand: false</code> or model the item directly inside
-the BetterModel asset.
+ItemsAdder's namespace and item id form the selector; the visible item name is
+not its identity. Armature detects the installed provider automatically and stages
+its generated assets for the ItemsAdder generation workflow. ItemsAdder remains
+responsible for generating, hosting and sending its final ZIP. Run `/iazip` and
+use ItemsAdder's normal pack refresh/send workflow after staging changes.
 
-## Reload and troubleshooting
 
-Install ItemsAdder before Armature, then run:
+After changing Armature models or renderer assets:
 
-~~~text
-/armature reload all
-~~~
+```text
+/armature reload pack
+/iazip
+```
 
-Check the startup/reload provider list and verify the exact namespace/id. See
-[Profiles](../../getting-started/profiles/README.md),
-[Blockbench model](../../getting-started/blockbench-model.md), and
-[Public API](../public-api.md).
+Provider command syntax can differ by installed provider version; use its own
+help for arguments. Choose the correct
+Minecraft pack target and accept/download the final provider pack. If the
+result is missing textures, inspect the final ZIP before retrying item matching.
+
+The provider identifies items; Armature's generic equip/unequip and vanilla
+events remain available. Do not assume it supplies WeaponMechanics-style fire
+or reload events. Emit custom gameplay signals via the public API when needed.
+
+See [Resource Packs](../../configuration/resource-packs.md) for collisions,
+filters, split delivery and generation receipts.

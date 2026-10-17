@@ -1,0 +1,13 @@
+wiki_rifle:
+  match: {item: weaponmechanics:m4a1}
+  model: {name: arm_rifle}
+  animations:
+    movement:
+      - animation: base
+      - when: weaponmechanics.aiming == true
+        animation: aim
+    actions:
+      - trigger: weaponmechanics:fire
+        animation: {name: fire, cooldown: 3t}
+      - trigger: weaponmechanics:reload-start
+        animation: {name: reload, can-be-cancelled: false}

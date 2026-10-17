@@ -1,4 +1,8 @@
-# ☠️ MythicMobs
+---
+description: "MythicMobs"
+---
+
+# 🐉 MythicMobs
 
 Armature's MythicMobs adapter is embedded in `Armature.jar`. Install `MythicMobs` beside Armature; it registers its mechanics and lifecycle triggers only when the public Armature API and MythicMobs are available.
 
@@ -7,20 +11,19 @@ All mechanics target a player and call Armature's presentation API. Keep project
 ## Mechanics
 
 ```yaml
-Skills:
-  PistolFire:
-    Skills:
-      - armatureaction{action=FIRE} @self
-      - armatureanimation{animation=inspect} @self
-      - armaturesignal{signal=mythicmobs:weapon.fire} @self
+PistolFire:
+  Skills:
+    - armatureaction{action=FIRE} @self
+    - armatureanimation{animation=inspect} @self
+    - armaturesignal{signal=mythicmobs:weapon.fire} @self
 
-  AimStart:
-    Skills:
-      - armatureloop{action=AIM} @self
+AimStart:
+  Skills:
+    - armatureloop{action=AIM} @self
 
-  AimStop:
-    Skills:
-      - armatureloop{stop=true} @self
+AimStop:
+  Skills:
+    - armatureloop{stop=true} @self
 ```
 
 | Mechanic                                        | Main configuration                                   | Effect                                                |
@@ -68,10 +71,9 @@ The trigger metadata contains:
 Use `armaturesignal` when the profile owns the mapping:
 
 ```yaml
-Skills:
-  WeaponFire:
-    Skills:
-      - armaturesignal{signal=mythicmobs:weapon.fire} @self
+WeaponFire:
+  Skills:
+    - armaturesignal{signal=mythicmobs:weapon.fire} @self
 ```
 
 ```yaml
@@ -90,3 +92,30 @@ animations:
 Dynamic right-hand values in conditions require the `$` prefix. For example, `weaponmechanics.ammo == $weaponmechanics.magazine-size` compares two runtime values; without `$`, a path-like right-hand string is literal.
 
 See [Built-in triggers](../../getting-started/profiles/triggers.md), [Built-in conditions](../../getting-started/profiles/conditions.md), and [Public API](../public-api.md).
+
+
+## Complete profile to test the adapter
+
+```yaml
+wiki_mythicmobs:
+  match:
+    item: minecraft:iron_sword
+  model:
+    name: wiki_player
+    hide-vanilla-hand: true
+  animations:
+    movement:
+      - animation: base
+    actions:
+      - trigger: mythicmobs:weapon.fire
+        animation:
+          name: inspect
+          duration: 12t
+```
+
+Create `wiki_player` with `base` and `inspect` using the Blockbench tutorial.
+Hold an iron sword and send the matching signal shown above from a script/skill.
+Expected result: one `inspect` action, then `base`. Generic script signals do
+not cancel the host's gameplay event automatically. Use the lifecycle completion
+event only for natural completion, and schedule gameplay follow-up using the
+host's normal player-safe mechanism.

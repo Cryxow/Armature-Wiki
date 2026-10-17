@@ -1,3 +1,7 @@
+---
+description: "Skript"
+---
+
 # 📜 Skript
 
 Armature's Skript adapter is embedded in the distribution `Armature.jar`. Install `Skript` beside Armature; the syntax is registered only when both Armature's public API and Skript are available.
@@ -83,3 +87,30 @@ on arm swing:
 ```
 
 If the player is offline, Armature is unavailable, or the requested profile or asset is missing, the adapter simply has no presentation operation to apply. For result statuses and modern signal routing, see [Public API](../public-api.md) and [Built-in conditions](../../getting-started/profiles/conditions.md).
+
+
+## Complete profile to test the adapter
+
+```yaml
+wiki_skript:
+  match:
+    item: minecraft:iron_sword
+  model:
+    name: wiki_player
+    hide-vanilla-hand: true
+  animations:
+    movement:
+      - animation: base
+    actions:
+      - trigger: skript:weapon.fire
+        animation:
+          name: inspect
+          duration: 12t
+```
+
+Create `wiki_player` with `base` and `inspect` using the Blockbench tutorial.
+Hold an iron sword and send the matching signal shown above from a script/skill.
+Expected result: one `inspect` action, then `base`. Generic script signals do
+not cancel the host's gameplay event automatically. Use the lifecycle completion
+event only for natural completion, and schedule gameplay follow-up using the
+host's normal player-safe mechanism.

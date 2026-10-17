@@ -1,14 +1,26 @@
-# ⚡ Built-in Triggers
+---
+description: "Triggers"
+---
 
-An action rule reacts to an instantaneous, namespaced signal. Continuous state belongs in a movement or additive `when` rule; it should not start an action every tick.
+# ⚡ Triggers
+
+Triggers are instantaneous namespaced signals. Continuous state belongs in
+`animations.movement` or `animations.additives`; it must not fire an action on
+every tick.
+
+The modern tree keeps all rules under one `animations` container. Action rules
+use `trigger` and optional `condition`; their playback channel is always
+exclusive `replace`, so `mode` is not a valid field.
 
 ```yaml
 animations:
   actions:
     - trigger: player:attack
-      condition: player.using-item == false
+      condition:
+        - player.using-item == false
       animation:
-        name: swing
+        name: [swing, swing_1, swing_2]
+        selection: random
         duration: 6t
 
     - trigger: weaponmechanics:reload
@@ -20,171 +32,256 @@ animations:
       consume: true
 ```
 
-The modern loader requires every `trigger` to contain a namespace and a colon. Multiple rules may use the same trigger. Armature selects the matching rule with the highest condition specificity, then uses declaration order as the tie-breaker.
+All event arguments are exposed during evaluation as
+`event.argument.<name>`. Multiple rules may use one trigger; the most
+specific matching condition wins, then declaration order is the fallback.
 
-## Signal context
+Status: `implemented` is emitted by the base plugin; `provider` requires the
+named optional provider; `API/Skript/Denizen` means an external caller can
+publish it; `reserved` is part of the vocabulary but has no bundled emitter
+yet.
 
-During evaluation, the signal is available as `event.signal` and `event.type`. Its detail map is available as `event.argument.<name>`, as a direct `<name>` alias, and as `<namespace>.<name>`. Values are converted to booleans, finite numbers, or strings.
+## Namespace policy
 
-`consume: true` requests cancellation only when the emitter owns a cancellable event. It can cancel supported vanilla right-click or WeaponMechanics reload input. For API and external integration signals it is returned in the API result; the external caller still owns gameplay cancellation.
+| Namespace | Source | Examples | Status |
+| --- | --- | --- | --- |
+| `player:` | normalized player event | `player:attack` | implemented |
+| `item:` | item/profile lifecycle | `item:equip` | implemented |
+| `block:` | block interaction/mining | `block:place` | implemented |
+| `entity:` | entity interaction/combat | `entity:hit` | implemented |
+| `projectile:` | projectile launch/impact | `projectile:hit` | implemented |
+| `world:` | world/environment transition | `world:change` | implemented |
+| `input:` | client input or packet intent | `input:jump-press` | implemented |
+| `animation:` | Armature animation lifecycle/marker | `animation:complete` | implemented |
+| `<provider>:` | external plugin adapter | `weaponmechanics:reload` | provider |
+| `<integration>:` | external caller-owned signal | `skript:weapon.special` | API/Skript/Denizen |
 
-## Player lifecycle and item state
-
-| Trigger                 | Emitted when                                                              | Details                                             |
-| ----------------------- | ------------------------------------------------------------------------- | --------------------------------------------------- |
-| `player:join`           | A player joins.                                                           | none                                                |
-| `player:ready`          | The client-ready presentation resync succeeds after join or world change. | `reason`: `join` or `world_change`                  |
-| `player:quit`           | A player leaves.                                                          | none                                                |
-| `player:death`          | The player death cleanup starts.                                          | `damage-type`: currently `unknown`                  |
-| `player:respawn`        | The player has respawned.                                                 | `world`                                             |
-| `player:teleport`       | A non-cancelled same-world or synchronous cross-world teleport succeeds.  | `cause`; cross-world also `from-world`, `world`     |
-| `player:world-change`   | Bukkit reports a world change, including plugin-driven changes.           | `from-world`, `world`                               |
-| `world:change`          | Alias emitted with `player:world-change`.                                 | `from-world`, `world`                               |
-| `player:swap-hand`      | A main/off-hand swap is requested.                                        | no detail from the low-priority cancellation path   |
-| `input:slot-change`     | The selected hotbar slot changes.                                         | `previous-slot`, `slot`, `previous-item`, `item`    |
-| `player:hotbar-change`  | Alias for the selected hotbar slot change.                                | same slot and item details                          |
-| `item:held-change`      | The resolved held identity changes.                                       | same slot and item details                          |
-| `item:main-hand-change` | The main-hand slot changes.                                               | same slot and item details                          |
-| `item:off-hand-change`  | The off-hand item swap event is accepted.                                 | `previous-main-hand`, `previous-off-hand`           |
-| `item:equip`            | A modern profile presentation becomes active.                             | `item`, optional `previous-item`, `hand: main-hand` |
-| `item:unequip`          | A modern profile presentation stops being active.                         | `item`, `next-slot`, `hand: main-hand`              |
-
-The item lifecycle signals describe presentation sessions. They do not change the inventory or transfer gameplay ownership to Armature.
+There is no `armature:` prefix. A provider or integration owns its namespace;
+Armature only resolves the signal against the active item profile.
 
 ## Player actions and interactions
 
-| Trigger                    | Emitted when                                                                                                        | Details                                              |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| `player:attack`            | A main-hand attack/swing packet is observed for a modern profile.                                                   | `hand: main-hand`                                    |
-| `player:use-item`          | A right-click use starts on the off hand, or a supported vanilla right-click is routed through the trigger service. | `hand`, `action`, optional `item`, `block`, `face`   |
-| `player:use-item-stop`     | Held item use changes from active to inactive during a runtime sample.                                              | transition context                                   |
-| `player:use-item-complete` | A consumable is completed.                                                                                          | `hand`, `item`                                       |
-| `player:consume-item`      | A consumable event is accepted.                                                                                     | `hand`, `item`                                       |
-| `item:consume`             | Alias emitted for the accepted consumable event.                                                                    | `hand`, `item`                                       |
-| `player:release-item`      | Held item use changes from active to inactive.                                                                      | transition context                                   |
-| `player:drop-item`         | The player drops an item.                                                                                           | `item`, `amount`, `hand: main-hand`                  |
-| `player:pickup-item`       | The player picks up an item.                                                                                        | `item`, `amount`                                     |
-| `player:damage-taken`      | The player takes non-cancelled damage.                                                                              | `damage`, `damage-type`, optional `source`           |
-| `player:heal`              | The player regains health.                                                                                          | `amount`, `cause`                                    |
-| `player:food-change`       | Food level changes.                                                                                                 | `food-level`, `saturation`                           |
-| `player:effect-add`        | A potion effect is added or changed.                                                                                | `effect`, `action`, optional `amplifier`, `duration` |
-| `player:effect-remove`     | A potion effect is removed.                                                                                         | `effect`, `action`                                   |
-| `player:effect-change`     | A potion effect event has another Bukkit action.                                                                    | `effect`, `action`, optional `amplifier`, `duration` |
-| `item:durability-change`   | Bukkit reports item damage.                                                                                         | `damage`, `previous`, `value`                        |
+| Trigger | Emitted when | Useful arguments | Status |
+| --- | --- | --- | --- |
+| `player:attack` | Main-hand attack/swing is observed. | `hand`, `target`, `critical` | implemented |
+| `player:use-item` | Use/right-click starts. | `hand`, `item`, `action` | implemented |
+| `player:use-item-stop` | Item use ends before completion. | `hand`, `item`, `reason` | implemented |
+| `player:use-item-complete` | Item use completes. | `hand`, `item` | implemented |
+| `player:consume-item` | Food, potion, or consumable is consumed. | `hand`, `item` | implemented |
+| `player:release-item` | A held/charged item is released. | `hand`, `item`, `charge` | implemented |
+| `player:swap-hand` | Main/off-hand swap is requested. | `previous-main-hand`, `previous-off-hand` | implemented |
+| `player:drop-item` | Player drops an item. | `hand`, `item`, `amount` | implemented |
+| `player:pickup-item` | Player picks up an item. | `item`, `amount` | implemented |
+| `player:hotbar-change` | Selected hotbar slot changes. | `previous-slot`, `slot`, `item` | implemented |
+| `player:interact` | Generic player interaction occurs. | `hand`, `action`, `target` | implemented |
+
+`player:use-item` and `input:secondary-press` represent right-click intent,
+including clicks in air where vanilla has no item action. Paper may mark those
+`PlayerInteractEvent`s cancelled by default; Armature still observes the input.
+
+`player:attack` includes a target classification computed at the swing time:
+`event.argument.target` is `air`, `block`, or `entity`. The more precise
+`event.argument.target-type` contains the namespaced block/entity type, or
+`minecraft:air`. This is the server ray-trace target, before another plugin
+can cancel or alter the resulting damage.
+
+```yaml
+actions:
+  - trigger: player:attack
+    condition: event.argument.target in [air, entity]
+    animation:
+      name: [sword_swing_1, sword_swing_2]
+      selection: sequence
+
+  - trigger: block:damage
+    animation:
+      name: block_swing
+```
+
+## Movement transitions
+
+Movement loops should use `when`, for example
+`player.climbing == true` and `player.climbing-direction == down`. These
+signals are for one-shot transition animations.
+
+| Trigger | Emitted when | Status |
+| --- | --- | --- |
+| `player:move-start` | Meaningful movement begins. | implemented |
+| `player:move-stop` | Meaningful movement stops. | implemented |
+| `player:sprint-start` | Sprinting begins. | implemented |
+| `player:sprint-stop` | Sprinting ends. | implemented |
+| `player:sneak-start` | Sneaking begins. | implemented |
+| `player:sneak-stop` | Sneaking ends. | implemented |
+| `player:jump` | Upward jump starts. | implemented |
+| `player:land` | Player returns to ground. | implemented |
+| `player:fall-start` | Airborne downward movement starts. | implemented |
+| `player:fall-stop` | Downward movement stops. | implemented |
+| `player:climb-start` | Climbing starts. | implemented |
+| `player:climb-stop` | Climbing ends. | implemented |
+| `player:swim-start` | Swimming starts. | implemented |
+| `player:swim-stop` | Swimming ends. | implemented |
+| `player:glide-start` | Elytra gliding starts. | implemented |
+| `player:glide-stop` | Elytra gliding ends. | implemented |
+| `player:mount` | Player mounts a vehicle/entity. | implemented |
+| `player:dismount` | Player leaves a vehicle/entity. | implemented |
+| `player:direction-change` | Actual relative movement direction changes. | implemented |
+
+Transition details include `speed`, `vertical-speed`, `fall-distance`,
+`fall-time`, `direction`, and `previous-direction`.
+
+## Player lifecycle and status
+
+| Trigger | Emitted when | Status |
+| --- | --- | --- |
+| `player:join` | Player joins. | implemented |
+| `player:ready` | Presentation resync is ready for the client. | implemented |
+| `player:quit` | Player leaves. | implemented |
+| `player:respawn` | Player respawns. | implemented |
+| `player:death` | Player enters the death state. | implemented |
+| `player:teleport` | Same-world or cross-world teleport succeeds. | implemented |
+| `player:world-change` | Player changes world. | implemented |
+| `player:damage-taken` | Player takes damage. | implemented |
+| `player:heal` | Player health increases. | implemented |
+| `player:effect-add` | Potion effect is added or changed. | implemented |
+| `player:effect-remove` | Potion effect is removed. | implemented |
+| `player:effect-change` | Potion effect action has no add/remove mapping. | implemented |
+| `player:food-change` | Food level changes. | implemented |
+| `player:fire-start` | Player catches fire. | implemented |
+| `player:fire-stop` | Player stops burning. | implemented |
+| `player:freeze-start` | Freezing starts. | implemented |
+| `player:freeze-stop` | Freezing stops/recedes. | implemented |
+
+## Item and equipment
+
+| Trigger | Emitted when | Status |
+| --- | --- | --- |
+| `item:equip` | A modern profile becomes active. | implemented |
+| `item:unequip` | A modern profile stops being active. | implemented |
+| `item:held-change` | Resolved held identity changes. | implemented |
+| `item:main-hand-change` | Main-hand slot changes. | implemented |
+| `item:off-hand-change` | Off-hand item changes. | implemented |
+| `item:durability-change` | Item durability changes. | implemented |
+| `item:consume` | Held item is consumed/decremented. | implemented |
+| `item:charge-start` | Charge/use begins. | implemented |
+| `item:charge-release` | Charge/use is released. | implemented |
+
+`item:equip` and `item:unequip` describe presentation sessions. They never
+transfer inventory or gameplay ownership to Armature.
 
 ## Blocks, entities, and projectiles
 
-| Trigger             | Emitted when                                        | Details                                                         |
-| ------------------- | --------------------------------------------------- | --------------------------------------------------------------- |
-| `block:interact`    | A clicked block is present in a player interaction. | `hand`, `action`, `item`, `block`, `face`                       |
-| `block:damage`      | A block damage/progress event is accepted.          | `block`, `tool`, `face`, `phase: progress`, `instant`           |
-| `block:break-start` | The client starts digging.                          | `phase: start`                                                  |
-| `block:break`       | A block break completes.                            | `block`, `tool`, `phase: complete`                              |
-| `block:place`       | A block placement completes.                        | `block`, `against`, `face`, `hand`, `tool`, `phase: complete`   |
-| `entity:interact`   | A player right-clicks an entity.                    | `entity`, `hand`, `action: right-click`                         |
-| `player:interact`   | A player interaction or entity interaction occurs.  | `hand`, `action`, optional `item`, `block`, `face`, or `entity` |
-| `entity:hit`        | A player damages an entity.                         | `target`, `damage`, `damage-type`                               |
-| `entity:death`      | An entity killed by the player dies.                | `entity`, `killer` player UUID                                  |
-| `projectile:launch` | A player launches a projectile.                     | `projectile`, resolved held `item`                              |
-| `projectile:hit`    | A player projectile hits an entity or block.        | `projectile`, optional `target`, `block`                        |
+| Trigger | Emitted when | Useful arguments | Status |
+| --- | --- | --- | --- |
+| `block:break-start` | Client begins mining. | `phase: start` | implemented |
+| `block:damage` | Bukkit reports block damage, usually at the start. | `block`, `tool`, `face`, `phase` | implemented |
+| `block:break` | Block break completes. | `block`, `tool`, `phase: complete` | implemented |
+| `block:mining-start` | A mining session starts. | `block`, `tool`, `face`, `elapsed: 0` | implemented |
+| `block:mining-stop` | A mining session ends or is cancelled. | `block`, `tool`, `face`, `elapsed` | implemented |
+| `block:place` | Block placement succeeds. | `block`, `against`, `face`, `hand`, `tool` | implemented |
+| `block:interact` | Player interacts with a block. | `block`, `face`, `hand`, `action` | implemented |
+| `entity:interact` | Player interacts with an entity. | `entity`, `hand`, `action` | implemented |
+| `entity:hit` | Player damages an entity. | `target`, `damage`, `damage-type` | implemented |
+| `entity:death` | Player's killed entity dies. | `entity`, `killer` | implemented |
+| `projectile:launch` | Player launches a projectile. | `projectile`, `item` | implemented |
+| `projectile:hit` | Player projectile hits entity/block. | `projectile`, `target`, `block` | implemented |
 
-`block:break-start` is client intent from PacketEvents; `block:break` is the accepted completion event. Use the former for the beginning of a mining animation and the latter for an animation that should represent a completed break.
+`block:break-start` comes from PacketEvents and is an intent signal;
+`block:break` is the accepted completion event. This distinction avoids
+playing a completion animation when mining is cancelled. The continuous state
+is exposed as `block.mining` and is refreshed with the player tick; Armature
+does not emit a new action signal every tick. In Creative, repeated start/break
+signals refresh the mining state; it stops after eight ticks without another
+hit because the client does not maintain Survival's destroy-progress session.
 
-## Movement and environment transitions
+## World and environment
 
-These signals are generated when the modern runtime observes a state change. Their common detail map contains `direction`, `previous-direction`, `speed`, `vertical-speed`, `fall-distance`, `fall-time`, `phase`, and `weather`.
-
-| Trigger                                               | Transition                                            |
-| ----------------------------------------------------- | ----------------------------------------------------- |
-| `player:move-start` / `player:move-stop`              | Movement intent starts/stops.                         |
-| `player:sprint-start` / `player:sprint-stop`          | Sprint starts/stops.                                  |
-| `player:sneak-start` / `player:sneak-stop`            | Sneak starts/stops.                                   |
-| `player:jump` / `player:land`                         | Upward jump starts / airborne player lands.           |
-| `player:fall-start` / `player:fall-stop`              | Downward airborne movement starts/stops.              |
-| `player:climb-start` / `player:climb-stop`            | Climbing starts/stops.                                |
-| `player:swim-start` / `player:swim-stop`              | Swimming starts/stops.                                |
-| `player:glide-start` / `player:glide-stop`            | Elytra gliding starts/stops.                          |
-| `player:mount` / `player:dismount`                    | Vehicle relation starts/stops.                        |
-| `player:direction-change`                             | Relative movement direction changes.                  |
-| `world:enter-water` / `world:leave-water`             | Water state changes.                                  |
-| `world:enter-lava` / `world:leave-lava`               | Lava state changes.                                   |
-| `world:enter-powder-snow` / `world:leave-powder-snow` | Powder-snow state changes.                            |
-| `player:fire-start` / `player:fire-stop`              | Fire ticks start/stop.                                |
-| `player:freeze-start` / `player:freeze-stop`          | Freeze ticks start/stop.                              |
-| `world:time-phase-change`                             | Day/night phase changes; `phase` is `day` or `night`. |
-| `world:weather-change`                                | Storm state changes; `weather` is `rain` or `clear`.  |
+| Trigger | Emitted when | Status |
+| --- | --- | --- |
+| `world:change` | World-change alias is observed. | implemented |
+| `world:weather-change` | Rain/thunder state changes. | implemented |
+| `world:time-phase-change` | Day/night phase changes. | implemented |
+| `world:enter-water` | Player enters water. | implemented |
+| `world:leave-water` | Player leaves water. | implemented |
+| `world:enter-lava` | Player enters lava. | implemented |
+| `world:leave-lava` | Player leaves lava. | implemented |
+| `world:enter-powder-snow` | Player enters powder snow. | implemented |
+| `world:leave-powder-snow` | Player leaves powder snow. | implemented |
 
 ## Low-level input
 
-These signals represent client intent and can occur even when a gameplay plugin later blocks the resulting action:
+These describe client intent. They can fire even when a gameplay plugin blocks
+the resulting action.
 
-| Trigger                                             | Meaning                                             |
-| --------------------------------------------------- | --------------------------------------------------- |
-| `input:primary-press` / `input:primary-release`     | Main-hand attack or dig input starts/stops.         |
-| `input:secondary-press` / `input:secondary-release` | Use input starts/stops.                             |
-| `input:forward-press` / `input:forward-release`     | Forward key changes.                                |
-| `input:backward-press` / `input:backward-release`   | Backward key changes.                               |
-| `input:left-press` / `input:left-release`           | Left key changes.                                   |
-| `input:right-press` / `input:right-release`         | Right key changes.                                  |
-| `input:jump-press` / `input:jump-release`           | Jump key changes.                                   |
-| `input:sneak-press` / `input:sneak-release`         | Sneak key changes.                                  |
-| `input:sprint-press` / `input:sprint-release`       | Sprint key changes.                                 |
-| `input:slot-change`                                 | Selected hotbar slot changes.                       |
-| `item:charge-start`                                 | A right-click is observed while the hand is raised. |
-| `item:charge-release`                               | Packet use/charge release is observed.              |
+| Trigger | Status |
+| --- | --- |
+| `input:primary-press` | implemented |
+| `input:primary-release` | implemented |
+| `input:secondary-press` | implemented |
+| `input:secondary-release` | implemented |
+| `input:forward-press` / `input:forward-release` | implemented |
+| `input:backward-press` / `input:backward-release` | implemented |
+| `input:left-press` / `input:left-release` | implemented |
+| `input:right-press` / `input:right-release` | implemented |
+| `input:jump-press` / `input:jump-release` | implemented |
+| `input:sneak-press` / `input:sneak-release` | implemented |
+| `input:sprint-press` / `input:sprint-release` | implemented |
+| `input:slot-change` | implemented |
 
-## Animation lifecycle and markers
+## Animation lifecycle
 
-| Trigger                      | Emitted when                                                | Details                                                                  |
-| ---------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `animation:start`            | A finite modern action or movement transition starts.       | `animation`, `action`, `layer`, `token`                                  |
-| `animation:complete`         | A finite non-transition action reaches its natural end.     | `animation`, `action`, `layer: action`, `reason: completed`, `token`     |
-| `animation:cancel`           | An action or transition is cancelled, replaced, or removed. | same fields with `reason`                                                |
-| `animation:transition-start` | A movement start/end transition starts.                     | `animation`, `to`, `token`                                               |
-| `animation:transition-end`   | A movement transition completes.                            | `animation`, `action`, `layer: transition`, `reason: completed`, `token` |
-| `animation:marker`           | BetterModel sends an animation marker signal.               | `signal`                                                                 |
-| `animation:signal`           | Generic marker signal alias.                                | `signal`                                                                 |
-| `animation:<name>`           | A marker without a namespace is normalized to this signal.  | `signal`                                                                 |
+| Trigger | Emitted when | Status |
+| --- | --- | --- |
+| `animation:start` | A modern action/transition starts. | implemented |
+| `animation:complete` | A finite action completes. | implemented |
+| `animation:cancel` | An action is replaced, cancelled, or removed. | implemented |
+| `animation:transition-start` | A movement transition starts. | implemented |
+| `animation:transition-end` | A movement transition completes. | implemented |
+| `animation:marker` | BetterModel emits an animation marker. | implemented |
+| `animation:signal` | A marker signal is forwarded generically. | implemented |
 
-The public Bukkit events `ArmatureAnimationStartEvent` and `ArmatureAnimationEndEvent` expose the same finite-animation lifecycle. `animation:complete` is emitted only for a natural completion; an end caused by replacement or removal is a cancellation signal.
+These are Armature session events, not BetterModel implementation details.
 
-## WeaponMechanics signals
+## Provider and custom triggers
 
-When WeaponMechanics is enabled, the action provider emits these signals under the `weaponmechanics` namespace:
+WeaponMechanics uses its own namespace. The base adapter normalizes its action
+events and forwards provider details such as `weaponmechanics.ammo`,
+`weaponmechanics.aiming`, `weaponmechanics.reloading`,
+`weaponmechanics.rounds-remaining`, and `weaponmechanics.firearm-state`.
 
-| Signal                                              | Source state                                                |
-| --------------------------------------------------- | ----------------------------------------------------------- |
-| `weaponmechanics:equip` / `weaponmechanics:unequip` | Weapon equipment changes in either hand.                    |
-| `weaponmechanics:aim-enter`                         | Main-hand scope enters.                                     |
-| `weaponmechanics:aim`                               | Main-hand scope is active or its zoom is refreshed.         |
-| `weaponmechanics:aim-exit`                          | Main-hand scope exits.                                      |
-| `weaponmechanics:fire`                              | Main-hand shot while not scoped.                            |
-| `weaponmechanics:aim-fire`                          | Main-hand shot while scoped.                                |
-| `weaponmechanics:reload`                            | Reload input before WeaponMechanics starts its normal path. |
-| `weaponmechanics:reload-phase`                      | Each accepted reload iteration.                             |
-| `weaponmechanics:reload-complete`                   | The reload reaches magazine capacity.                       |
-| `weaponmechanics:reload-cancel`                     | A reload is cancelled.                                      |
-| `weaponmechanics:firearm-state-change`              | Firearm open/close/state event.                             |
-| `weaponmechanics:fire-mode-change`                  | Selective fire mode changes.                                |
-
-All provider signals include `weapon-title` and `hand` details. See the [WeaponMechanics page](../../advanced/supported-plugins/weaponmechanics.md) for the full detail payload and reload conditions.
-
-## External and custom signals
-
-Armature accepts any valid namespaced signal sent through the public API or an optional integration. There is no fixed `armature:` prefix and no requirement to register a custom signal first:
+| Signal family | Examples | Status |
+| --- | --- | --- |
+| WeaponMechanics | `weaponmechanics:fire`, `weaponmechanics:reload`, `weaponmechanics:reload-phase`, `weaponmechanics:firearm-state-change`, `weaponmechanics:fire-mode-change`, `weaponmechanics:reload-complete` | provider |
+| Java API | `api:custom-hit`, `custom:parry` | API |
+| Skript addon | `skript:weapon.special` | API/Skript |
+| Denizen | `denizen:weapon.parry` | API/Denizen |
+| Other plugin | `<plugin-id>:<event>` | API |
 
 ```yaml
 animations:
   actions:
-    - trigger: myplugin:weapon-special
-      condition: event.argument.critical == true
+    - trigger: api:custom-hit
+      condition:
+        - event.argument.critical == true
       animation:
-        name: special
+        name: hit
         duration: 6t
 ```
 
-Java, Skript, MythicMobs, and Denizen callers can publish the same signal. Those callers own the gameplay event; Armature only resolves the matching profile rule and presents the configured animation.
+Java callers use `ArmatureApi.animations().sendSignal(playerId, signal,
+details)`. The Skript and Denizen addons expose the equivalent signal
+operations; Denizen also provides native lifecycle events and raw playback
+commands.
 
-## Compatibility identifiers
+Gameplay plugins remain responsible for deciding whether the gameplay event
+succeeds. `consume: true` is meaningful only when the event owner allows
+cancellation; for external API signals it is returned as result metadata.
 
-The legacy profile converter maps old action names to modern signals. For a WeaponMechanics item, firearm actions use the `weaponmechanics:` namespace; vanilla actions such as swing, mine, place, use, eat, drink, throw, jump, and land use their corresponding `player:`, `block:`, or `projectile:` signal. New profiles should write the modern namespaced signal directly rather than depending on the legacy action map.
+
+## Equip and unequip
+
+`item:equip` belongs to the incoming presentation. An accepted `item:unequip`
+keeps the outgoing instance/pose alive for that clip, including rapid switches
+and switching back to the same profile. Without an accepted unequip clip it is
+removed immediately. `render.dynamic-items.defer-until-equipped` retains its
+visual item snapshot until the incoming presentation is equipped.
+This never delays inventory selection or weapon gameplay.

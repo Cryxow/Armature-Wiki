@@ -1,4 +1,8 @@
-# 🧱 Providers
+---
+description: "Providers"
+---
+
+# 🔧 Providers
 
 Most integrations only need the animation facade. Use the provider contracts
 when your plugin must teach Armature how to identify its items or must bridge
@@ -36,7 +40,7 @@ import java.util.Optional;
 final class MyWeaponsItemProvider implements ItemIdentityProvider {
     private final NamespacedKey weaponKey;
 
-    MyWeaponsItemProvider(MyWeaponsPlugin plugin) {
+    MyWeaponsItemProvider(org.bukkit.plugin.Plugin plugin) {
         this.weaponKey = new NamespacedKey(plugin, "weapon-id");
     }
 
@@ -73,7 +77,7 @@ m4a1:
   match:
     item: myweapons:m4a1
   model:
-    name: fp_rifle
+    name: arm_rifle
   animations:
     movement:
       - animation: base
@@ -198,3 +202,10 @@ responsible for:
 
 Armature consumes the identity/action information to select and render a
 presentation. It does not call back into the provider to mutate gameplay.
+
+
+There is no public unregister method in this contract. Stop external event
+resources during disable; do not register another instance with the same id
+against an unchanged registry. Armature rebuilds its registry with its own
+lifecycle. Prefer direct namespaced signals for new integrations when item
+identity is already expressible with the structured matcher.

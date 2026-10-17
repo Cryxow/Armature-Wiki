@@ -1,0 +1,9 @@
+wiki_two_arms:
+  match: {item: weaponmechanics:m4a1}
+  model: {name: arm_rifle}
+  animations:
+    movement:
+      - animation: {name: base, arms: both}
+    actions:
+      - trigger: weaponmechanics:reload-start
+        animation: {name: reload, arms: both, can-be-cancelled: false}

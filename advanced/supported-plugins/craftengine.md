@@ -4,56 +4,63 @@ coverY: 0
 coverHeight: 243
 ---
 
-# 🟨 CraftEngine
+# 🛠️ CraftEngine
 
-Armature detects CraftEngine as an item identity provider. It resolves the
-CraftEngine custom item key from the held <code>ItemStack</code> and keeps
-CraftEngine responsible for the item and its gameplay behavior.
+Install CraftEngine beside Armature and create the custom item identified below
+using that plugin's own configuration. The Armature example uses the shipped
+`arm_sword` model; it does not create the custom gameplay item.
 
-## Modern profile
+## Complete profile
 
-Use the exact namespaced CraftEngine item key:
-
-~~~yaml
-ce_test_item:
+```yaml
+wiki_craftengine:
   match:
-    item: your_namespace:custom_item
+    item: craftengine:my_pack:wiki_sword
   model:
-    name: fp_custom_item
+    name: arm_sword
     hide-vanilla-hand: true
   animations:
+    movement:
+      - animation: base
     actions:
       - trigger: player:attack
         animation:
-          name: armature_swing
-          duration: 6t
-~~~
+          name: swing
+          duration: 8t
+```
 
-The modern shape is <code>match.item</code>, <code>model.name</code>, and
-<code>model.hide-vanilla-hand</code>. The old root-level
-<code>item</code>, scalar <code>model</code>, and root-level
-<code>hide-vanilla-hand</code> shape is legacy syntax.
+Save under `plugins/Armature/profiles/`, reload profiles, obtain that exact
+provider item and inspect the matched profile. Swing it: the expected clip is
+`swing`. Test both hands if the item can be held in either.
 
-## First-person item masking
+## Resource-pack workflow
 
-With <code>render.vanilla-item-mode: mask</code>, Armature builds a copy from
-the CraftEngine item definition and applies the generated invisible Armature
-<code>item-model</code> to the first-person packet. The inventory item is not
-replaced.
 
-Set <code>model.hide-vanilla-hand: false</code> when the item should remain
-visible or is already modeled inside the BetterModel asset.
+Armature detects CraftEngine automatically. The bridge contributes Armature assets to
+CraftEngine's resource-pack workflow. Reuse is valid only when Armature content
+and provider inputs still match the successful generation receipt. Changing a
+model, provider input or target pack setting requires a fresh provider build.
 
-## Reload
+Use the installed CraftEngine version's reload/build workflow and its own pack
+delivery. Read its generation log: issuing a command without a completed build
+is not a successful asset refresh.
 
-Install CraftEngine before Armature and run:
 
-~~~text
-/armature reload all
-~~~
+After changing Armature models or renderer assets:
 
-If the profile does not match, verify the namespace and item id returned by
-CraftEngine rather than the display name. See
-[Profiles](../../getting-started/profiles/README.md),
-[Blockbench model](../../getting-started/blockbench-model.md), and
-[Configuration](../../getting-started/configuration.md).
+```text
+/armature reload pack
+/ce reload all
+```
+
+Provider command syntax can differ by installed provider version; use its own
+help for arguments. Choose the correct
+Minecraft pack target and accept/download the final provider pack. If the
+result is missing textures, inspect the final ZIP before retrying item matching.
+
+The provider identifies items; Armature's generic equip/unequip and vanilla
+events remain available. Do not assume it supplies WeaponMechanics-style fire
+or reload events. Emit custom gameplay signals via the public API when needed.
+
+See [Resource Packs](../../configuration/resource-packs.md) for collisions,
+filters, split delivery and generation receipts.

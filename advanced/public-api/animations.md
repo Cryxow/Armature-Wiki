@@ -1,262 +1,236 @@
-# 🎬 Animations
+---
+description: "Animations & Presentations"
+---
 
-The stable animation API is profile-bound. Armature must already be rendering
-the profile that matches the player's held item. A call never changes the
-inventory item or mounts a second model.
+# ▶️ Animations & Presentations
 
-The model is selected by the profile, while the animation id is resolved from
-the profile or, for raw playback, from the loaded model:
+## Standalone model playback and persistent presentations
 
-| Call | Purpose | Return type |
-| --- | --- | --- |
-| <code>playAsset</code> | Explicit asset and channel, with a handle | <code>ArmatureOperationResult</code> |
-| <code>playAnimation</code> | Finite asset compatibility call | <code>ArmatureAnimationResult</code> |
-| <code>playRawAnimation</code> | Finite loaded-model asset without profile enumeration | <code>ArmatureAnimationResult</code> |
-| <code>startLoop</code> | Persistent loop, built-in or configured asset | <code>ArmatureAnimationResult</code> or operation result |
-| <code>startRawLoop</code> | Persistent loaded-model asset | <code>ArmatureAnimationResult</code> |
-| <code>triggerAdditive</code> | Configured additive event, with a handle | <code>ArmatureOperationResult</code> |
+These operations require the matching 2.0.0 plugin/API JAR. Earlier 1.3.0 Javadoc does not describe them.
 
-## Channels
+Select a loaded model explicitly to play a finite animation without a profile
+file, item matcher, or prior API call:
 
-Use <code>ArmatureAnimationReference</code> for new integrations. It prevents
-an animation name from being interpreted as the wrong kind of operation:
+```java
+ArmatureApi.tryAnimations().ifPresent(api ->
+    api.play(playerId, "arm_rifle", Map.of(
+        "name", "inspect",
+        "speed", 1.25,
+        "duration", "40t",
+        "can-be-cancelled", true
+    )).thenAccept(result -> {
+        if (!result.accepted()) logger.fine("Playback: " + result.status());
+    })
+);
+```
 
-| Channel | Meaning | Typical weapon use |
-| --- | --- | --- |
-| <code>ACTION</code> | Finite, replaceable animation | fire, reload, inspect |
-| <code>LOOP</code> | Persistent selected state | idle, aim, sprint |
-| <code>ADDITIVE</code> | Layer over the base pose | recoil, breathing, fall |
+The call temporarily replaces the player's view through the active renderer. The model and resource-pack assets must already be loaded;
+Armature discovers models independently of profile item matching. The actual
+inventory is unchanged. After the finite action ends, Armature restores the
+presentation appropriate to the item held **at that time**. An unknown model or
+missing animation is rejected before replacing the existing view. A renderer
+failure after mounting releases the temporary view and restores item matching.
 
-Resolve against the profile currently rendered for the player:
+The future resolves after the model is ready and the playback request is accepted,
+not when the animation ends. The returned presentation handle can close that
+exact generation early. Closing an old handle cannot close a newer presentation.
+
+For persistent movement, repeated actions, additives, and conditions, open one
+presentation with the exact content of a modern YAML `animations` section:
+
+```java
+var presentation = new ArmaturePresentation("arm_rifle", Map.of(
+    "movement", List.of(Map.of("animation", "base")),
+    "actions", List.of(Map.of(
+        "trigger", "myplugin:inspect",
+        "condition", List.of("event.argument.allowed == true"),
+        "hide-vanilla-hand", true,
+        "animation", Map.of(
+            "name", "inspect",
+            "duration", "40t",
+            "speed", 1.25,
+            "cooldown", "10t",
+            "can-be-cancelled", false
+        )
+    ))
+));
+
+api.openPresentation(playerId, presentation).thenAccept(result -> {
+    result.handle().ifPresent(handle -> {
+        // Store this handle in the integration's per-player state to close later.
+        presentationHandles.put(playerId, handle);
+        api.trigger(playerId, "myplugin:inspect",
+            ArmatureSignalData.of(Map.of("allowed", true)));
+    });
+});
+
+// When the integration relinquishes this view:
+var handle = presentationHandles.remove(playerId);
+if (handle != null) api.closePresentation(playerId, handle);
+```
+
+The full constructor also accepts a `variables` tree, model offset, model sway
+rate, and default vanilla-hand visibility. Maps/lists are deeply copied before
+scheduling. The API uses the same parser and rule evaluator as YAML, including
+validation of unsupported properties and invalid combinations:
+
+| Section | Supported parameters |
+| --- | --- |
+| `movement` rule | `when`, `hide-vanilla-hand`, `animation` |
+| Movement animation | `name` (string/list), `selection`, `speed`, `blend-in`, `blend-out`, `sway-rate`, `loop`, `start`, `end` |
+| `actions` rule | `trigger`, `condition`, `consume`, `hide-vanilla-hand`, `animation` |
+| Action animation | `name` (string/list), `selection`, `duration`, `speed`, `blend-in`, `blend-out`, `cooldown`, `can-be-cancelled` |
+| `additives` rule | `when`, `animation`, `playback`, `group`, `priority`, `weight`, `blend-in`, `blend-out`, `bones`, `channels`, `position-gain`, `rotation-gain`, `reference` |
+| Additive animation | `name` (string/list), `selection`, `speed` |
+| Weight mapping | `parameter`, `input`, `output`, `easing`, `clamp` |
+| Reference pose | `animation`, `time` |
+
+Duration units and defaults match modern YAML (`t`, `s`, or numeric ticks where
+that field accepts them). Omitted action duration comes from the loaded clip.
+The `consume` result is a routing decision; custom gameplay still belongs to the
+integration. Sending a trigger does not itself cancel an arbitrary Bukkit event.
+
+Each opened presentation owns fresh rule state. Repeated `trigger(...)` calls in
+that view share cooldowns and variant sequences. Separate `play(player, model,
+options)` calls create separate contexts; their cooldowns are not shared. Use a
+persistent presentation for weapon/skill systems with repeated triggers.
+
+Only one API-owned view is active per player. It persists across item changes
+until closed/replaced, but is released by player-session cleanup (death,
+disconnect, world change), plugin reload, or disabling the runtime/player.
+Opening a replacement respects a currently non-cancellable action; explicitly
+closing a presentation tears it down. The configured profile catalog remains
+read-only and does not contain these temporary views. Temporary view identifiers
+in lifecycle/operation data start with `api.` and are not YAML profile IDs.
+
+While this view is active, unpinned asset references and raw playback use its
+model/rules. Built-in legacy `ArmatureAction` dispatch does not fall back to the
+held item's profile. `trigger(...)` is the YAML-aligned alias for `signal(...)`;
+existing signal overloads remain compatible.
+
+## Action, loop and additive channels
+
+New integrations should use `ArmatureAnimationReference` instead of guessing
+whether a string is a finite action, a persistent loop, or an additive layer:
 
 ```java
 var api = ArmatureApi.animations();
-var playerId = player.getUniqueId();
 
 api.playAsset(playerId, ArmatureAnimationReference.action("inspect"));
 api.startLoop(playerId, ArmatureAnimationReference.loop("aim"));
 api.triggerAdditive(playerId, ArmatureAnimationReference.additive("recoil"));
 ```
 
-Or pin the profile id explicitly:
+Use `ArmatureAnimationReference.profile(profileId, assetId, channel)` when a
+profile must be explicit. The profile still has to be the profile rendered for
+the player's held item; Armature returns `PROFILE_NOT_ACTIVE` rather than
+silently replacing that presentation.
+
+Accepted operations return an `ArmatureOperationResult`. Its handle is scoped
+to the player, profile, channel, and monotonically increasing runtime token:
 
 ```java
-var fire = ArmatureAnimationReference.profile(
-    "m4a1", "fire", ArmatureAnimationChannel.ACTION);
-
-api.playAsset(playerId, fire);
+var request = api.triggerAdditive(playerId,
+    ArmatureAnimationReference.additive("recoil"));
+request.thenAccept(result -> result.handle().ifPresent(handle ->
+    api.stop(playerId, handle)
+));
 ```
 
-An explicit profile is still checked against the active held-item profile. If
-<code>m4a1</code> is not the profile currently rendered for that player, the
-result is <code>PROFILE_NOT_ACTIVE</code>; Armature does not silently replace
-the presentation.
+Stopping an old handle never stops a newer replacement. A stale handle returns
+`HANDLE_NOT_ACTIVE`. A direct loop remains selected until it is stopped, the
+item/profile changes, Armature is reloaded, or the runtime is disabled.
 
-## Configure the assets
+`catalog()` returns an immutable profile snapshot with action, loop, additive,
+and signal ids. `snapshot(playerId)` returns the presentation state and active
+additive ids for one online player. Neither method exposes gameplay state.
 
-For a modern profile, direct channel-aware playback resolves names from the
-corresponding section. The rule names themselves are not ids; the asset names
-inside <code>animation.name</code> are the ids used by the API.
+## Profile-bound and compatibility calls
 
-```yaml
-m4a1:
-  match:
-    item:
-      material: minecraft:paper
-      data:
-        custom-model-data: 41001
-  model:
-    name: fp_rifle
-    hide-vanilla-hand: true
-  animations:
-    movement:
-      - animation: base
-      - when:
-          - player.sneaking == true
-        animation: aim
-
-    actions:
-      - trigger: myweapons:m4a1.fire
-        animation:
-          name: fire
-          duration: 4t
-          cooldown: 2t
-      - trigger: myweapons:m4a1.reload
-        animation:
-          name: reload
-          duration: 35t
-      - trigger: myweapons:m4a1.inspect
-        animation:
-          name: inspect
-          duration: 40t
-
-    additives:
-      - when:
-          - player.sprinting == true
-        animation: recoil
-        playback: once
-        group: weapon
-```
-
-For this example, <code>fp_rifle.bbmodel</code> must be loaded by Armature and
-contain <code>base</code>, <code>aim</code>, <code>fire</code>,
-<code>reload</code>, <code>inspect</code>, and <code>recoil</code> animations.
-The profile still controls the model binding and visibility.
-
-## Direct finite playback
-
-Use <code>playAsset</code> when the weapon plugin owns the event and already
-knows which clip should play:
+`play(UUID, String)` is the compatibility API for an administrator-defined
+legacy action id in the profile of the item currently held by the player:
 
 ```java
-public void fireAnimation(Player player) {
-    ArmatureApi.tryAnimations().ifPresent(api ->
-        api.playAsset(player.getUniqueId(),
-                ArmatureAnimationReference.action("fire"))
-            .thenAccept(result -> {
-                if (!result.accepted()) {
-                    plugin.getLogger().fine(
-                        "M4A1 visual fire rejected: " + result.status());
-                }
-            })
-    );
-}
+animations.play(player.getUniqueId(), "inspect");
+animations.playAction(player.getUniqueId(), ArmatureAction.FIRE);
 ```
 
-The shorter compatibility calls are useful when a handle is not needed:
+`playAnimation(playerId, animationId)` targets the exact finite asset in the
+active profile, including modern inline action assets. `startLoop(playerId,
+assetId)` accepts either a built-in loop id or an exact direct loop asset id.
+The channel-aware overload remains preferred when the caller wants a handle.
+
+For integrations that own the animation names, use the raw methods. They
+require an active item profile or API presentation to bind the rendered model; the requested clip
+does not need to be listed in that profile. The renderer validates the asset
+against the loaded model at playback time:
 
 ```java
-api.playAnimation(playerId, "fire");
-api.playRawAnimation(playerId, "fire");
+animations.playRawAnimation(playerId, "fire");
+animations.startRawLoop(playerId, "aim");
 ```
 
-<code>playAnimation</code> resolves a configured action asset in the active
-profile. <code>playRawAnimation</code> uses the active rendered model and does
-not require the clip to be enumerated by an action rule. Both still require an
-active profile and a loaded model.
+The profile still controls item matching, model id, hand masking, and
+presentation policy. Raw playback does not change gameplay state or mount a
+different profile.
 
-## Loops
-
-Built-in loop actions are represented by <code>ArmatureAction</code>, for
-example <code>AIM</code>, <code>IDLE</code>, <code>SPRINT</code>, or
-<code>CROSSBOW_CHARGE</code>:
+The enum overload dispatches a built-in Armature action. `startLoop` is the
+explicit state-oriented form for persistent actions such as `IDLE`, `AIM`, or
+`CROSSBOW_CHARGE`; `stopLoop` clears the selected loop. `stopAction` cancels
+the current one-shot and resumes the selected loop.
 
 ```java
-api.startLoop(playerId, ArmatureAction.AIM);
-api.stopAction(playerId); // Stop only the finite action.
-api.stopLoop(playerId);   // Clear the public loop override.
+animations.startLoop(playerId, ArmatureAction.CROSSBOW_CHARGE);
+animations.stopAction(playerId);
+animations.stopLoop(playerId);
 ```
 
-For a custom loop asset, use the loop channel:
+When an integration already knows the profile id, it can make the selection
+explicit:
 
 ```java
-api.startLoop(playerId, ArmatureAnimationReference.loop("aim"));
-api.startRawLoop(playerId, "aim");
+animations.playAnimation(playerId, "m4a1", "inspect");
+animations.playAnimation(playerId, "m4a1", "swing");
 ```
 
-A selected loop remains active until it is stopped, the item/profile changes,
-Armature is reloaded, or the runtime is disabled. Stopping the loop resumes
-Armature's automatic movement selection.
+The selected profile must be the profile currently rendered for the player's
+held item. This prevents an animation request from silently replacing the
+gameplay item's presentation. The result is `PROFILE_NOT_ACTIVE` when the
+profile exists but does not match the held item.
 
-## Additive layers
+These API playback calls do not change the item, ammo, damage or reload state, and do not cancel a caller-owned event. The gameplay plugin remains responsible for those rules.
 
-An additive API call references an additive event or its authored animation
-name. The profile must declare the additive under
-<code>animations.additives</code> (or a legacy additive section):
+## Lifecycle events
+
+The API fires Bukkit events for accepted finite animations:
+
+- `ArmatureAnimationStartEvent` exposes `getProfileId()`, `getActionId()`,
+  `getAnimation()` and `getToken()`.
+- `ArmatureAnimationEndEvent` exposes the same fields plus `getReason()`:
+  `COMPLETED`, `CANCELLED`, `REPLACED` or `REMOVED`.
+
+Loop transitions are internal renderer transitions and do not produce lifecycle
+events. The end event is the reliable hook for starting a gameplay-owned
+follow-up skill; it does not imply that Armature owns that gameplay state.
+
+## Results and state
+
+`ArmatureAnimationResult.Status` distinguishes accepted playback from a
+missing profile/action, a cooldown, a non-cancellable active action, an
+unavailable player, a stale handle, or a renderer rejection.
+`ArmatureAnimationState` and `ArmatureAnimationSnapshot` expose only
+presentation data: current item key, desired loop, active animation, additive
+layers, and remaining ticks. They intentionally do not expose gameplay state.
 
 ```java
-api.triggerAdditive(playerId,
-        ArmatureAnimationReference.additive("recoil"))
-    .thenAccept(result -> {
-        if (result.accepted()) {
-            result.handle().ifPresent(handle -> {
-                // Store the handle if this layer must be stopped explicitly.
-            });
-        }
-    });
+animations.getState(playerId).thenAccept(snapshot -> snapshot.ifPresent(state -> {
+    if (state.hasActiveAction()) {
+        plugin.getLogger().fine("Armature action: " + state.activeActionId()
+            + " / animation: " + state.activeAnimation());
+    }
+}));
 ```
 
-<code>ADDITIVE</code> is not an alternate action mode. Armature composes it
-over the base pose, while finite actions remain on the exclusive action layer.
-
-## Handles and cancellation
-
-Channel-aware calls return an <code>ArmatureOperationResult</code>. An accepted
-operation has a monotonically increasing token and an optional
-<code>ArmatureAnimationHandle</code>:
-
-```java
-api.playAsset(playerId, ArmatureAnimationReference.action("reload"))
-    .thenAccept(result -> result.handle().ifPresent(handle -> {
-        activeReloadHandles.put(playerId, handle);
-    }));
-
-// Later, stop only the operation represented by this handle.
-var handle = activeReloadHandles.remove(playerId);
-if (handle != null) {
-    api.stop(playerId, handle);
-}
-```
-
-Handles are scoped to the player, profile, channel, and token. If a newer
-operation replaced the old one, stopping the old handle returns
-<code>HANDLE_NOT_ACTIVE</code> and cannot cancel the newer operation.
-
-Compatibility calls provide simpler cancellation:
-
-```java
-api.stopAction(playerId);
-api.stopLoop(playerId);
-```
-
-An action with <code>can-be-cancelled: false</code> may return
-<code>NOT_CANCELABLE</code> when a replacement or stop is attempted.
-
-## Results
-
-All result types use <code>ArmatureAnimationResult.Status</code>. The most
-useful values are:
-
-| Status | Meaning |
-| --- | --- |
-| <code>STARTED</code> | A finite action or additive was accepted |
-| <code>LOOP_UPDATED</code> | A loop was selected or changed |
-| <code>STOPPED</code> | The requested operation was stopped |
-| <code>COOLDOWN</code> | The action rule is still on cooldown |
-| <code>NOT_CANCELABLE</code> | The current action rejects cancellation |
-| <code>NO_PROFILE</code> | No matching active profile exists |
-| <code>PROFILE_NOT_ACTIVE</code> | An explicit profile is not the active one |
-| <code>NO_ANIMATION</code> | The asset is not declared or available |
-| <code>NOT_RENDERED</code> | Armature cannot render the requested presentation |
-| <code>PLAYER_UNAVAILABLE</code> | The player cannot be scheduled |
-| <code>DISABLED</code> | Armature runtime or player presentation is disabled |
-| <code>RENDERER_REJECTED</code> | The renderer rejected the request |
-| <code>HANDLE_NOT_ACTIVE</code> | A handle is stale or already replaced |
-
-Use <code>accepted()</code> instead of comparing only one status. Accepted
-statuses are <code>STARTED</code>, <code>LOOP_UPDATED</code>, and
-<code>STOPPED</code>.
-
-## State and catalog
-
-Use <code>state</code> or <code>snapshot</code> for presentation diagnostics,
-never as a source of gameplay truth:
-
-```java
-api.snapshot(playerId).thenAccept(snapshot ->
-    snapshot.ifPresent(current -> {
-        if (current.hasActiveAction()) {
-            plugin.getLogger().fine(
-                "Animation: " + current.activeAnimation());
-        }
-    }));
-
-api.catalog().thenAccept(catalog ->
-    catalog.profile("m4a1").ifPresent(profile ->
-        plugin.getLogger().info("Armature model: " + profile.modelId())));
-```
-
-The catalog is an immutable profile snapshot. It exposes action, loop,
-additive, and signal ids, plus a revision number. Neither the catalog nor a
-player snapshot exposes ammunition, damage, cooldowns, or other gameplay
-state.
+The `ArmaturePresentation` constructor permits an inline variables tree for an
+API-owned ephemeral view. That does not authorize local `variables:` blocks in
+YAML profiles: disk profiles use the shared `plugins/Armature/variables.yml`.

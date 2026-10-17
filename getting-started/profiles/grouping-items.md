@@ -1,106 +1,90 @@
-# 🛍️ Grouping Items
+---
+description: "Matching & Grouping Items"
+---
 
-A modern profile can map several items to one BetterModel model and one set of animation rules. All selectors live under `match`.
+# 🧲 Matching & Grouping Items
 
-## Exact items
-
-Use `match.items` for a list of exact identities:
+An exact selector is compact:
 
 ```yaml
-vanilla_weapons:
-  match:
+match:
+  item: minecraft:diamond_sword
+```
+
+Groups and patterns are supported:
+
+```yaml
+match:
+  items:
+    - family: blocks
+    - "*_LEAVES"
+    - minecraft:glass
+```
+
+Equivalent dedicated keys are `families` and `patterns`. Structured matching
+does not require a provider:
+
+```yaml
+match:
+  item:
+    material: minecraft:paper
+    data:
+      custom-model-data: 12001
+      item-model: "myplugin:rifle"
+      pdc:
+        "myplugin:variant": rifle
+      tags:
+        CustomTag: value
+```
+
+Selector matches can exclude exact items, families, or patterns:
+
+```yaml
+match:
+  families:
+    - swords
+  exclude:
     items:
       - minecraft:diamond_sword
-      - minecraft:netherite_sword
-      - weaponmechanics:m4a1
-  model:
-    name: fp_weapon
-  animations:
-    actions:
-      - trigger: player:attack
-        animation:
-          name: sword_swing
-          duration: 8t
-```
-
-Provider item identities keep their namespace. For example, a WeaponMechanics title is matched as `weaponmechanics:m4a1`, while an ItemsAdder or CraftEngine identity uses the namespace returned by that provider. Nexo ids use the explicit `nexo:` namespace.
-
-## Families
-
-Use `match.families` for Armature's vanilla item categories:
-
-```yaml
-vanilla_tools:
-  match:
     families:
-      - swords
-      - tools
-  model:
-    name: fp_tool
-```
-
-Supported family names are: `blocks`, `generic` or `items`, `tools`, `pickaxes`, `axes`, `shovels`, `hoes`, `swords`, `shields`, `bows`, `crossbows`, `tridents`, `food`, `drinks`, `throwables`, and `firearms`. Singular forms are accepted for category names; `tools` includes pickaxes, axes, shovels, and hoes.
-
-## Patterns
-
-Use `match.patterns` for Minecraft material-name patterns. `*` matches any number of characters and `?` matches one character:
-
-```yaml
-vanilla_blades:
-  match:
+      - shield
     patterns:
-      - "*_SWORD"
-      - "minecraft:*_AXE"
-  model:
-    name: fp_blade
+      - "*_AXE"
 ```
 
-Wildcard patterns currently expand Minecraft materials only. A provider item should use its exact namespaced identity.
+`exclude.items` accepts exact item IDs, `family:` selectors, and `pattern:`
+selectors. All exclusions are applied after inclusion, and an exclusion wins.
+Structured `item` matching can only use Minecraft material exclusions and
+cannot be combined with inclusion `items`, `families`, or `patterns`.
+Duplicate item matches and duplicate profile IDs make the
+containing file invalid. Startup and reload both warn and skip invalid files;
+valid files remain active. A reload never disables the plugin because of one
+bad profile file.
 
-## Mixed selectors and exclusions
+## Activation and permissions
 
-Positive selector forms can be combined:
+`match.when` can gate an otherwise matching profile using external state or
+shared variables. Use `player.has-permission:<node>` or a `permissions` block
+with `any`, `all`, `none`. Selection conditions cannot depend on that selection's
+own animation/variant/attachment results.
 
-```yaml
-combat_tools:
-  match:
-    items:
-      - minecraft:diamond_sword
-      - family: axes
-      - pattern: "*_HOE"
-    families:
-      - bows
-    patterns:
-      - "*_CROSSBOW"
-  model:
-    name: fp_combat
-```
+Profile access can be disabled for selected players without changing the
+profile file. Grant `armature.disabled` to disable all Armature presentation for
+the player, or grant `armature.disabled.<profile-id>` to disable only one
+profile. For the profile above, the targeted permission is
+`armature.disabled.m4a1`.
 
-Remove exact items, families, or patterns with `match.exclude`:
+The suffix is the profile's lowercase YAML root key. The permissions default to
+false and are intended as opt-out nodes managed by LuckPerms or another
+permission plugin. Removing a node lets the profile resume on the next player
+tick; gameplay and the held item are never modified. As a persistent command
+alternative, use `/armature profile disable <player> <profile>` and
+`/armature profile enable <player> <profile>`.
 
-```yaml
-combat_tools:
-  match:
-    families: [swords]
-    exclude:
-      items:
-        - minecraft:golden_sword
-      patterns:
-        - "*_NETHERITE"
-  model:
-    name: fp_combat
-```
+## Check the chosen identity
 
-Structured item matching is different: use a mapping under `match.item` when material, custom model data, item model, PDC, or custom tags must be checked. It cannot be combined with positive selectors, but it can use `exclude`; those exclusions must be Minecraft items.
-
-## Rules
-
-* Every profile needs `match` and `model.name`.
-* An `animations` section is optional when a Java, Skript, MythicMobs, or Denizen integration uses raw model playback.
-* Each item can resolve to only one profile.
-* Duplicate selectors inside one profile are deduplicated.
-* A duplicate match across profiles rejects the new profile set.
-* Families and patterns expand when profiles load.
-* Apply changes with `/armature reload profiles`.
-
-See [Profiles](./) for the complete modern schema and [Built-in conditions](conditions.md) for rule selection.
+Provider namespaces identify real custom items: `itemsadder:...`, `nexo:...`,
+`craftengine:...`, `weaponmechanics:...`. A translated display name is not an ID.
+Use `/armature profile inspect <player>` with the actual held item, then test the
+other hand. Avoid overlapping exact matches in examples; model composition
+references profile IDs and does not use the containing folder as a namespace.

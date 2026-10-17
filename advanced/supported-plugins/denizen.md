@@ -1,4 +1,8 @@
-# 🧿 Denizen
+---
+description: "Denizen"
+---
+
+# 🤖 Denizen
 
 Armature's Denizen adapter is embedded in `Armature.jar`. When Denizen is installed and Armature's public API is available, the adapter registers one native `armature` command and the animation lifecycle event family.
 
@@ -84,3 +88,30 @@ animations:
 ```
 
 For all available trigger fields, conditions, and action selection behavior, see [Built-in triggers](../../getting-started/profiles/triggers.md), [Built-in conditions](../../getting-started/profiles/conditions.md), and [Public API](../public-api.md).
+
+
+## Complete profile to test the adapter
+
+```yaml
+wiki_denizen:
+  match:
+    item: minecraft:iron_sword
+  model:
+    name: wiki_player
+    hide-vanilla-hand: true
+  animations:
+    movement:
+      - animation: base
+    actions:
+      - trigger: denizen:weapon.fire
+        animation:
+          name: inspect
+          duration: 12t
+```
+
+Create `wiki_player` with `base` and `inspect` using the Blockbench tutorial.
+Hold an iron sword and send the matching signal shown above from a script/skill.
+Expected result: one `inspect` action, then `base`. Generic script signals do
+not cancel the host's gameplay event automatically. Use the lifecycle completion
+event only for natural completion, and schedule gameplay follow-up using the
+host's normal player-safe mechanism.

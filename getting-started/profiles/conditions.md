@@ -1,37 +1,47 @@
-# 🧮 Built-in Conditions
+---
+description: "Conditions"
+---
 
-The modern profile loader uses the same condition language for movement rules, action rules, and additive rules:
+# 🔀 Conditions
 
-* `when` selects a movement or additive rule.
-* `condition` filters an action trigger.
+This document defines the built-in condition vocabulary for modern item
+animation profiles. The parser and runtime implement the core values below;
+provider, PlaceholderAPI, NBT, and expensive derived values remain optional at
+runtime when their source is unavailable. Names are namespaced so built-in
+values, provider values, and administrator-defined variables cannot collide.
 
-The paths and aliases on this page are the built-in 1.3.0 runtime vocabulary. Provider values and event arguments are added at runtime as described below.
+Conditions use `when` for movement/additive rules and `condition` for action
+rules. The action channel is always `replace`; there is no `action.mode` in
+the modern format.
 
-## Syntax
+## Basic syntax
 
-A scalar condition is a lookup, a comparison, or a boolean literal:
+Conditions in a `when` list are combined with `AND`:
 
 ```yaml
 when:
   - player.on-ground == true
+  - player.sneaking == false
   - player.speed < 2
-  - player.movement-direction in [forward, backward]
 ```
 
-Supported operators are:
+The readable comparison syntax should support:
 
-| Operator             | Meaning                                                        |
-| -------------------- | -------------------------------------------------------------- |
-| `==`                 | Equal. Strings compare case-insensitively.                     |
-| `!=`                 | Not equal.                                                     |
-| `<`, `<=`, `>`, `>=` | Numeric or case-insensitive string comparison.                 |
-| `in`                 | Membership in a list; a two-number list is an inclusive range. |
-| `contains`           | String, collection, or map containment.                        |
+```text
+==       equals
+!=       differs
+<        less than
+<=       less than or equal to
+>        greater than
+>=       greater than or equal to
+in       belongs to a list or range
+contains contains a value
+```
 
-A YAML list is an `all`/AND group. An explicit map can combine groups and comparisons:
+For grouped logic, an explicit form can be supported:
 
 ```yaml
-condition:
+when:
   all:
     - player.on-ground == true
     - any:
@@ -41,302 +51,395 @@ condition:
     - player.sneaking == true
 ```
 
-The map form also accepts a path as a key; it is equivalent to equality with the scalar value:
+The same condition engine should be usable by movement rules, action events,
+and additive animations. Movement rules select one base animation; additive
+rules can be active at the same time.
 
-```yaml
-condition:
-  player.on-ground: true
-  player.pose: standing
-```
+## Namespaces
 
-An empty list or empty map is always true. An empty `any` group is false. A condition path is lower-cased and may not contain spaces.
+| Namespace | Ownership | Examples |
+| --- | --- | --- |
+| `player.*` | Armature built-in player state | `player.speed`, `player.swimming` |
+| `input.*` | Armature/client input state | `input.forward`, `input.jump` |
+| `item.*` | Current item and equipment | `item.main-hand.type` |
+| `world.*` | World and time context | `world.is-day`, `world.weather` |
+| `block.*` | Blocks around the player | `block.below.type` |
+| `movement.*` | Current movement resolver state | `movement.active`, `movement.changed` |
+| `action.*` | Current action state | `action.active`, `action.progress` |
+| `animation.*` | Current animation state | `animation.id`, `animation.remaining` |
+| `additive.*` | Additive layer state | `additive.breathing.weight` |
+| `event.*` | Current event and its arguments | `event.signal`, `event.argument.mode` |
+| `variable.*` | Profile/session/external values | `variable.stamina` |
+| `<provider>.*` | External plugin adapters | `weaponmechanics.ammo` |
+| `placeholder.*` | Explicit PlaceholderAPI values | `placeholder.player-stamina` |
 
-### Right-hand values
+`<provider>.*`, `variable.*`, and `placeholder.*` are not built-in player
+conditions, but they belong in the same condition language. The provider name
+is the namespace itself; a generic `provider.` prefix is not exposed to users.
 
-Booleans, `null`, numbers, strings, lists, and durations are supported:
+Event names use the same source namespace with a colon separator:
+`weaponmechanics:reload`, `player:attack`, or `block:break`. Values use a dot
+to address a property in that namespace, such as `weaponmechanics.ammo` or
+`player.speed`.
 
-```yaml
-condition:
-  all:
-    - player.health-percent <= 25
-    - player.air-time >= 10t
-    - player.pose == "fall-flying"
-    - player.look-direction in [north, south]
-```
-
-Durations use ticks or seconds (`10t`, `0.3s`) and are converted to ticks. Unqualified identifiers on the right are literal strings. Prefix a dynamic right-hand path with `$`:
-
-```yaml
-condition:
-  all:
-    - weaponmechanics.ammo == $weaponmechanics.magazine-size
-    - event.argument.old-mode != $event.argument.mode
-```
-
-Without `$`, `weaponmechanics.magazine-size` is compared as literal text, not looked up as another value. Missing left or right values make a comparison false. A bare lookup is true only when its value is the boolean `true`.
+Held-item visual rules expose `item.using` (boolean) and `item.use-ticks`
+(elapsed use ticks) for the rendered hand. These two values are evaluated per
+hand; use them in `model.held-item.rules[].when`.
 
 ## Player state
 
-### Posture, capability, and environment
+### Posture and capabilities
 
-| Path                    | Type    | Runtime meaning                                                        |
-| ----------------------- | ------- | ---------------------------------------------------------------------- |
-| `player.on-ground`      | boolean | The player is on the ground.                                           |
-| `player.moving`         | boolean | Input or horizontal speed indicates movement.                          |
-| `player.sneaking`       | boolean | Sneaking state or sneak input is active.                               |
-| `player.sprinting`      | boolean | Sprinting state or sprint input is active.                             |
-| `player.swimming`       | boolean | The player is swimming.                                                |
-| `player.falling`        | boolean | Airborne and descending.                                               |
-| `player.jumping`        | boolean | Airborne with upward vertical velocity.                                |
-| `player.climbing`       | boolean | The player is on a climbable surface.                                  |
-| `player.gliding`        | boolean | Elytra gliding is active.                                              |
-| `player.flying`         | boolean | Player flying is active.                                               |
-| `player.riding`         | boolean | The player is inside a vehicle.                                        |
-| `player.passenger`      | boolean | The player has a vehicle/passenger relation through Bukkit getVehicle. |
-| `player.has-passengers` | boolean | The player currently carries passengers.                               |
-| `player.sleeping`       | boolean | The player is sleeping.                                                |
-| `player.using-item`     | boolean | The player's hand is raised for item use.                              |
-| `player.blocking`       | boolean | The player is actively blocking.                                       |
-| `player.dead`           | boolean | Bukkit reports the player as dead.                                     |
-| `player.spectator`      | boolean | The game mode is spectator.                                            |
-| `player.invisible`      | boolean | Bukkit invisibility is active.                                         |
-| `player.has-vehicle`    | boolean | A vehicle is present.                                                  |
-| `player.swinging`       | boolean | The player is inside the short Armature swing window.                  |
-| `player.in-water`       | boolean | The player is in water.                                                |
-| `player.in-lava`        | boolean | The player is in lava.                                                 |
-| `player.in-powder-snow` | boolean | The player is in powder snow.                                          |
-| `player.underwater`     | boolean | The block at the player's eye location is liquid.                      |
-| `player.pose`           | string  | Bukkit pose, lower-cased with `_` changed to `-`.                      |
+| Condition | Type | Meaning |
+| --- | --- | --- |
+| `player.on-ground` | boolean | The player is supported by the ground. |
+| `player.moving` | boolean | The player has meaningful horizontal movement. |
+| `player.sneaking` | boolean | The player is sneaking/crouching. |
+| `player.sprinting` | boolean | The player is sprinting. |
+| `player.swimming` | boolean | The player is in the swimming pose/state. |
+| `player.falling` | boolean | The player is descending through the air. |
+| `player.jumping` | boolean | The player has just started an upward jump. |
+| `player.climbing` | boolean | The player is on a climbable surface. |
+| `player.gliding` | boolean | The player is gliding with an elytra. |
+| `player.flying` | boolean | The player is flying rather than falling normally. |
+| `player.riding` | boolean | The player is riding a vehicle or entity. |
+| `player.passenger` | boolean | The player is being carried as a passenger. |
+| `player.sleeping` | boolean | The player is sleeping. |
+| `player.using-item` | boolean | The player is currently using an item. |
+| `player.blocking` | boolean | The player is actively blocking. |
+| `player.swinging` | boolean | The player is in a hand-swing animation. |
+| `player.dead` | boolean | The player is dead or in the death state. |
+| `player.spectator` | boolean | The player is in spectator mode. |
+| `player.invisible` | boolean | The player is invisible. |
+| `player.has-vehicle` | boolean | The player has a vehicle. |
 
-Examples of `player.pose` include `standing`, `crouching`, `swimming`, `fall-flying`, `sleeping`, `riding`, `spin-attack`, and `dying`, depending on the server state.
+`player.pose` can expose the underlying pose as an enum when a single boolean
+is not sufficient, for example `standing`, `crouching`, `swimming`,
+`fall-flying`, `sleeping`, `riding`, `spin-attack`, or `dying`.
 
-### Movement and location
+### Movement values
 
-| Path                         | Type          | Runtime meaning                                                                 |
-| ---------------------------- | ------------- | ------------------------------------------------------------------------------- |
-| `player.speed`               | number        | Horizontal velocity magnitude multiplied by 20.                                 |
-| `player.horizontal-speed`    | number        | Alias of the current horizontal speed value.                                    |
-| `player.vertical-speed`      | number        | Y velocity multiplied by 20; positive is upward.                                |
-| `player.total-speed`         | number        | Full velocity magnitude multiplied by 20.                                       |
-| `player.fall-distance`       | number        | Bukkit fall distance.                                                           |
-| `player.air-time`            | ticks         | Airborne tick counter; reset to `0` on ground.                                  |
-| `player.time-since-grounded` | ticks         | Counter since the last grounded sample; reset to `0` on ground.                 |
-| `player.jump-time`           | ticks         | Airborne counter, or `0` while grounded.                                        |
-| `player.acceleration`        | number        | Current horizontal speed minus the previous sampled speed.                      |
-| `player.direction`           | enum          | Relative velocity direction: `forward`, `backward`, `left`, `right`, or `none`. |
-| `player.movement-direction`  | enum          | Same relative velocity direction value as `player.direction`.                   |
-| `player.climbing-direction`  | enum          | `up`, `down`, or `none`.                                                        |
-| `player.look-direction`      | enum          | Cardinal facing: `south`, `west`, `north`, or `east`.                           |
-| `player.world`               | string        | Bukkit world name.                                                              |
-| `player.dimension`           | namespaced id | World key, for example `minecraft:overworld`.                                   |
-| `player.biome`               | namespaced id | Biome key at the player's current block.                                        |
-| `player.light-level`         | number        | Block light level at the player's current block.                                |
-| `player.x`                   | number        | Player X coordinate.                                                            |
-| `player.y`                   | number        | Player Y coordinate.                                                            |
-| `player.z`                   | number        | Player Z coordinate.                                                            |
+| Condition | Type | Meaning |
+| --- | --- | --- |
+| `player.speed` | number | Normalized horizontal movement speed. |
+| `player.horizontal-speed` | number | Horizontal velocity magnitude. |
+| `player.vertical-speed` | number | Signed vertical velocity; positive is up. |
+| `player.total-speed` | number | Full movement velocity magnitude. |
+| `player.fall-distance` | number | Distance travelled downward since leaving ground. |
+| `player.air-time` | duration | Time since leaving the ground, in ticks. |
+| `player.time-since-grounded` | duration | Time since the last grounded state, in ticks. |
+| `player.jump-time` | duration | Time since the current jump started, in ticks. |
+| `player.distance-to-ground` | number | Estimated distance to the next solid ground. Optional and more expensive. |
+| `player.acceleration` | number | Change in horizontal speed. Optional derived value. |
 
-`player.moving` uses current input intent when available and otherwise the configured movement threshold. The speed values are server-tick-scaled, so compare them consistently within one server configuration.
+`player.speed` must have one documented unit and remain stable across server
+implementations. `player.horizontal-speed` should be available when the exact
+velocity is required. `player.fall-distance` and `player.vertical-speed` must
+be independent values: one describes accumulated distance, the other current
+direction and intensity.
 
-## Input
+### Direction
 
-| Path                           | Type    | Meaning                                                                         |
-| ------------------------------ | ------- | ------------------------------------------------------------------------------- |
-| `input.direction`              | enum    | First active intent in order `forward`, `backward`, `left`, `right`, or `none`. |
-| `input.forward`                | boolean | Forward input is held.                                                          |
-| `input.backward`               | boolean | Backward input is held.                                                         |
-| `input.left`                   | boolean | Left input is held.                                                             |
-| `input.right`                  | boolean | Right input is held.                                                            |
-| `input.jump`                   | boolean | Jump input is held.                                                             |
-| `input.sneak`                  | boolean | Sneak input is held.                                                            |
-| `input.sprint`                 | boolean | Sprint input is held.                                                           |
-| `input.just-pressed.forward`   | boolean | Forward changed from released to held this tick.                                |
-| `input.just-pressed.backward`  | boolean | Backward changed from released to held this tick.                               |
-| `input.just-pressed.left`      | boolean | Left changed from released to held this tick.                                   |
-| `input.just-pressed.right`     | boolean | Right changed from released to held this tick.                                  |
-| `input.just-pressed.jump`      | boolean | Jump changed from released to held this tick.                                   |
-| `input.just-pressed.sneak`     | boolean | Sneak changed from released to held this tick.                                  |
-| `input.just-pressed.sprint`    | boolean | Sprint changed from released to held this tick.                                 |
-| `input.just-released.forward`  | boolean | Forward changed from held to released this tick.                                |
-| `input.just-released.backward` | boolean | Backward changed from held to released this tick.                               |
-| `input.just-released.left`     | boolean | Left changed from held to released this tick.                                   |
-| `input.just-released.right`    | boolean | Right changed from held to released this tick.                                  |
-| `input.just-released.jump`     | boolean | Jump changed from held to released this tick.                                   |
-| `input.just-released.sneak`    | boolean | Sneak changed from held to released this tick.                                  |
-| `input.just-released.sprint`   | boolean | Sprint changed from held to released this tick.                                 |
+The short form `player.direction` may be supported, with
+`player.movement-direction` as the explicit name.
 
-Primary and secondary hand press/release signals are triggers, not condition paths; see [Built-in triggers](triggers.md).
-
-## World and nearby blocks
-
-| Path                       | Type          | Runtime meaning                                                         |
-| -------------------------- | ------------- | ----------------------------------------------------------------------- |
-| `world.time`               | number        | World time of day.                                                      |
-| `world.full-time`          | number        | World full time.                                                        |
-| `world.game-time`          | number        | World game time.                                                        |
-| `world.is-day`             | boolean       | Bukkit day-time state.                                                  |
-| `world.is-night`           | boolean       | Inverse of `world.is-day`.                                              |
-| `world.raining`            | boolean       | World has storm/rain.                                                   |
-| `world.thundering`         | boolean       | World is thundering.                                                    |
-| `world.weather`            | enum          | `clear`, `rain`, or `thunder`.                                          |
-| `world.moon-phase`         | number        | Current phase index from `0` to `7`.                                    |
-| `block.below.type`         | namespaced id | Material below the player.                                              |
-| `block.above.type`         | namespaced id | Material one block above the current block.                             |
-| `block.current.type`       | namespaced id | Material at the player's current block.                                 |
-| `block.below.solid`        | boolean       | Block below is solid.                                                   |
-| `block.above.solid`        | boolean       | Block above is solid.                                                   |
-| `block.below.liquid`       | boolean       | Block below is liquid.                                                  |
-| `block.current.liquid`     | boolean       | Current block is liquid.                                                |
-| `block.current.passable`   | boolean       | Current block is passable.                                              |
-| `block.below.slipperiness` | number        | Bukkit slipperiness of the block below.                                 |
-| `block.below.climbable`    | boolean       | Block below is a ladder or vine according to Armature's built-in check. |
-
-## Items, equipment, and player status
-
-### Held items
-
-| Path                                | Type          | Runtime meaning                                                                          |
-| ----------------------------------- | ------------- | ---------------------------------------------------------------------------------------- |
-| `item.main-hand.type`               | item id       | Resolved identity, such as `weaponmechanics:m4a1`; falls back to the Minecraft material. |
-| `item.main-hand.material`           | namespaced id | Actual Minecraft material.                                                               |
-| `item.main-hand.amount`             | number        | Stack amount.                                                                            |
-| `item.main-hand.durability`         | number        | Current item damage; `0` for non-damageable items.                                       |
-| `item.main-hand.max-durability`     | number        | Maximum damage; `0` for non-damageable items.                                            |
-| `item.main-hand.durability-percent` | number        | Remaining durability percentage; `100` for non-damageable items.                         |
-| `item.main-hand.uses`               | number        | Current damage value used by Armature's compatibility path.                              |
-| `item.off-hand.type`                | namespaced id | Actual off-hand material identity.                                                       |
-| `item.off-hand.material`            | namespaced id | Actual off-hand Minecraft material.                                                      |
-| `item.off-hand.amount`              | number        | Off-hand stack amount.                                                                   |
-| `item.off-hand.durability`          | number        | Off-hand current damage.                                                                 |
-| `item.off-hand.max-durability`      | number        | Off-hand maximum damage.                                                                 |
-| `item.off-hand.durability-percent`  | number        | Off-hand remaining durability percentage.                                                |
-| `item.off-hand.uses`                | number        | Off-hand current damage compatibility value.                                             |
-
-### Equipment and status
-
-| Path                            | Type    | Runtime meaning                                               |
-| ------------------------------- | ------- | ------------------------------------------------------------- |
-| `player.held-slot`              | number  | Current hotbar slot.                                          |
-| `player.held-hand`              | enum    | Current held hand; the current runtime publishes `main-hand`. |
-| `player.has-off-hand-item`      | boolean | Off hand is not air.                                          |
-| `player.armor-piece:<slot>`     | item id | Armor material for a Bukkit equipment slot.                   |
-| `player.armor-piece:helmet`     | item id | Alias for `HEAD`.                                             |
-| `player.armor-piece:chestplate` | item id | Alias for `CHEST`.                                            |
-| `player.armor-piece:leggings`   | item id | Alias for `LEGS`.                                             |
-| `player.armor-piece:boots`      | item id | Alias for `FEET`.                                             |
-| `player.health`                 | number  | Current health.                                               |
-| `player.max-health`             | number  | Maximum health.                                               |
-| `player.health-percent`         | number  | Health percentage from `0` to `100`.                          |
-| `player.food-level`             | number  | Food level.                                                   |
-| `player.saturation`             | number  | Saturation.                                                   |
-| `player.air`                    | number  | Remaining air.                                                |
-| `player.level`                  | number  | Experience level.                                             |
-| `player.experience-percent`     | number  | Progress to the next level from `0` to `100`.                 |
-| `player.on-fire`                | boolean | Fire ticks are active.                                        |
-| `player.freezing`               | boolean | Freeze ticks are active.                                      |
-
-### Parameterized lookups
-
-These paths are resolved dynamically even when they are not present in the snapshot map:
-
-| Path                                   | Example                                         | Meaning                                                              |
-| -------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------- |
-| `player.has-effect:<id>`               | `player.has-effect:speed`                       | Player has the namespaced or short effect id.                        |
-| `player.effect-amplifier:<id>`         | `player.effect-amplifier:minecraft:speed`       | Current amplifier of that effect.                                    |
-| `player.effect-remaining:<id>`         | `player.effect-remaining:speed`                 | Remaining effect duration in ticks.                                  |
-| `player.has-permission:<permission>`   | `player.has-permission:armature.command.status` | Bukkit permission result.                                            |
-| `player.distance-to-ground`            | `player.distance-to-ground < 4`                 | Distance to the next non-passable block below, bounded to 64 blocks. |
-| `item.main-hand.has-enchantment:<key>` | `item.main-hand.has-enchantment:sharpness`      | Main-hand enchantment exists.                                        |
-| `item.main-hand.has-pdc:<key>`         | `item.main-hand.has-pdc:myplugin:variant`       | Main-hand PDC key exists.                                            |
-| `item.main-hand.has-tag:<key>`         | `item.main-hand.has-tag:CustomTag`              | Main-hand custom NBT tag exists.                                     |
-
-An absent effect or unavailable ground returns an absent value, so a comparison using it is false. The current dynamic item checks are main-hand checks; no off-hand `has-enchantment`, `has-pdc`, or `has-tag` aliases are published.
-
-## Runtime animation state
-
-### Movement
-
-| Path                           | Type    | Meaning                                         |
-| ------------------------------ | ------- | ----------------------------------------------- |
-| `movement.active`              | boolean | A movement rule currently matches.              |
-| `movement.id`                  | string  | Selected movement asset/rule name, or `none`.   |
-| `movement.previous`            | string  | Previous movement selection, or `none`.         |
-| `movement.changed`             | boolean | Selection changed during this update.           |
-| `movement.transitioning`       | boolean | A movement `start`/`end` transition is playing. |
-| `movement.transition-progress` | number  | Transition progress from `0.0` to `1.0`.        |
-| `movement.entered:<asset>`     | boolean | Named movement was entered this update.         |
-| `movement.left:<asset>`        | boolean | Named movement was left this update.            |
-
-### Action and animation
-
-| Path                        | Type    | Meaning                                                |
-| --------------------------- | ------- | ------------------------------------------------------ |
-| `action.active`             | boolean | A finite action is active.                             |
-| `action.id`                 | string  | Current action id, or `none`.                          |
-| `action.animation`          | string  | Current BetterModel animation asset, or `none`.        |
-| `action.progress`           | number  | Current action progress from `0.0` to `1.0`.           |
-| `action.elapsed`            | ticks   | Elapsed action ticks.                                  |
-| `action.remaining`          | ticks   | Remaining action ticks.                                |
-| `action.interruptible`      | boolean | Active action can be replaced.                         |
-| `action.completed`          | boolean | The current state recorded a completion this update.   |
-| `action.cancelled`          | boolean | The current state recorded a cancellation this update. |
-| `animation.id`              | string  | Currently rendered finite asset or movement asset.     |
-| `animation.progress`        | number  | Current animation progress.                            |
-| `animation.elapsed`         | ticks   | Elapsed animation ticks.                               |
-| `animation.remaining`       | ticks   | Remaining animation ticks.                             |
-| `animation.loop-index`      | number  | Current movement loop index.                           |
-| `animation.marker:<marker>` | boolean | Named marker was received on the current tick.         |
-
-### Additives and cooldowns
-
-| Path                              | Type    | Meaning                                               |
-| --------------------------------- | ------- | ----------------------------------------------------- |
-| `additive.active`                 | boolean | At least one additive group is active.                |
-| `additive.<animation>.active`     | boolean | Additive with that primary animation name is active.  |
-| `additive.<animation>.weight`     | number  | Resolved additive weight, or `0` while inactive.      |
-| `cooldown.<trigger>.ready`        | boolean | Action rule for the exact namespaced trigger can run. |
-| `cooldown.<trigger>.remaining`    | ticks   | Remaining cooldown for that trigger.                  |
-| `action.cooldown-ready:<trigger>` | boolean | Alias for the trigger cooldown readiness.             |
-
-For a trigger containing a colon, keep the colon in the path, for example `cooldown.weaponmechanics:reload.ready`.
-
-### Presentation session
-
-| Path                  | Type    | Meaning                                                              |
-| --------------------- | ------- | -------------------------------------------------------------------- |
-| `session.age`         | ticks   | Ticks since the current item/profile presentation session started.   |
-| `session.first-equip` | boolean | True during the first initialization update for the current session. |
-
-## Event context, variables, and providers
-
-### Event context
-
-These values are present while an action rule is evaluating a signal:
-
-| Path                    | Type              | Meaning                                                                        |
-| ----------------------- | ----------------- | ------------------------------------------------------------------------------ |
-| `event.signal`          | namespaced string | Normalized signal, for example `player:attack`.                                |
-| `event.type`            | namespaced string | Alias of `event.signal`.                                                       |
-| `event.source`          | string            | Emitter source such as `vanilla`, `provider`, `api`, `animation`, or `marker`. |
-| `event.elapsed`         | number            | `0` for the triggering evaluation.                                             |
-| `event.argument.<name>` | scalar            | Event detail supplied by the emitter.                                          |
-| `<name>`                | scalar            | Direct event-detail alias.                                                     |
-| `<namespace>.<name>`    | scalar            | Event-detail alias under the signal namespace.                                 |
-
-For `weaponmechanics:reload-phase`, for example, a detail named `round-index` is available as `event.argument.round-index`, `round-index`, and `weaponmechanics.round-index` during evaluation. The provider namespace is also cached for later profile evaluations until the item/profile session is changed or cleared.
-
-### Profile variables
-
-Each declared variable is exposed as both `variable.<id>` and `placeholder.<id>`. The alias does not mean PlaceholderAPI is installed; `source: placeholderapi` is the source that performs a PlaceholderAPI lookup.
-
-### Provider values
-
-There is no generic `provider.*` namespace. An action provider owns its namespace, for example:
-
-```yaml
-condition:
-  all:
-    - weaponmechanics.ammo == $weaponmechanics.magazine-size
-    - weaponmechanics.aiming == false
+```text
+forward
+backward
+left
+right
+up
+down
+none
 ```
 
-Any scalar detail sent with a namespaced signal is converted to a boolean, finite number, or string. A provider can therefore expose more values without changing the condition syntax; consult the provider page for its exact fields.
+The direction is relative to the player's facing direction, not to world
+coordinates. `up` and `down` are meaningful for climbing and other vertical
+movement. The current resolver exposes the dominant horizontal component
+(`forward`, `backward`, `left`, or `right`); input booleans remain available
+when a rule must distinguish a diagonal input.
+
+Two sources should remain distinct:
+
+| Condition | Meaning |
+| --- | --- |
+| `input.direction` | Direction the player is trying to move. |
+| `player.movement-direction` | Direction the player is actually moving. |
+| `player.climbing-direction` | `up`, `down`, or `none` while climbing. |
+| `player.look-direction` | Direction of the player's view, not movement. |
+
+Animation selection should normally use actual movement. Input direction is
+useful when an animation should respond immediately to a pressed key even if
+the player is blocked.
+
+### Input state
+
+Input conditions are useful for edge-triggered actions and for distinguishing
+intent from resulting movement:
+
+| Condition | Type | Meaning |
+| --- | --- | --- |
+| `input.forward` | boolean | Forward input is held. |
+| `input.backward` | boolean | Backward input is held. |
+| `input.left` | boolean | Left input is held. |
+| `input.right` | boolean | Right input is held. |
+| `input.jump` | boolean | Jump input is held or active. |
+| `input.sneak` | boolean | Sneak input is held. |
+| `input.sprint` | boolean | Sprint input is held. |
+| `input.just-pressed.<name>` | boolean | An input was pressed this update. |
+| `input.just-released.<name>` | boolean | An input was released this update. |
+
+## Environment and location
+
+### Player location
+
+| Condition | Type | Meaning |
+| --- | --- | --- |
+| `player.world` | string | Current world name. |
+| `player.dimension` | enum | Current dimension/environment. |
+| `player.biome` | string/enum | Current biome. |
+| `player.x` | number | Current X coordinate. |
+| `player.y` | number | Current Y coordinate. |
+| `player.z` | number | Current Z coordinate. |
+| `player.light-level` | number | Light level at the player. |
+| `player.in-water` | boolean | The player is in water. |
+| `player.in-lava` | boolean | The player is in lava. |
+| `player.in-powder-snow` | boolean | The player is in powder snow. |
+| `player.underwater` | boolean | The player's eyes are underwater. |
+
+### World context
+
+| Condition | Type | Meaning |
+| --- | --- | --- |
+| `world.time` | number | Current world time. |
+| `world.is-day` | boolean | It is daytime. |
+| `world.is-night` | boolean | It is nighttime. |
+| `world.weather` | enum | `clear`, `rain`, or `thunder`. |
+| `world.raining` | boolean | Rain is active. |
+| `world.thundering` | boolean | Thunder is active. |
+| `world.moon-phase` | enum/number | Current moon phase. |
+| `world.game-time` | number | World game time. |
+
+### Nearby blocks
+
+Block conditions should be scoped to fixed positions around the player and
+should not perform unbounded searches:
+
+| Condition | Type | Meaning |
+| --- | --- | --- |
+| `block.below.type` | material | Block directly below the player. |
+| `block.above.type` | material | Block directly above the player. |
+| `block.current.type` | material | Block at the player's position. |
+| `block.below.solid` | boolean | The block below is solid. |
+| `block.current.liquid` | boolean | The current block is liquid. |
+| `block.below.slipperiness` | number | Surface slipperiness below the player. |
+| `block.below.climbable` | boolean | The block below or beside the player is climbable. |
+
+Regions, claims, permissions, and arbitrary nearby-entity searches should be
+provided by dedicated integrations rather than added to the core vocabulary.
+
+## Player status and equipment
+
+### Status values
+
+| Condition | Type | Meaning |
+| --- | --- | --- |
+| `player.health` | number | Current health. |
+| `player.max-health` | number | Maximum health. |
+| `player.health-percent` | number | Current health as a percentage from `0` to `100`. |
+| `player.food-level` | number | Current food level. |
+| `player.saturation` | number | Current saturation. |
+| `player.air` | number | Remaining air/breath value. |
+| `player.experience-percent` | number | Progress toward the next experience level from `0` to `100`. |
+| `player.level` | number | Current experience level. |
+| `player.on-fire` | boolean | The player is burning. |
+| `player.freezing` | boolean | The player is freezing. |
+| `player.has-effect` | parameterized | The player has a named status effect. |
+| `player.effect-amplifier` | parameterized number | Amplifier of a named status effect. |
+| `player.effect-remaining` | parameterized duration | Remaining duration of a named effect. |
+| `player.has-permission` | parameterized boolean | The player has a named permission. |
+
+Examples:
+
+```yaml
+when:
+  - player.health-percent < 25
+  - player.has-effect:speed == true
+  - player.has-permission:armature.debug == true
+```
+
+For profile-wide player opt-out, use the runtime permissions
+`armature.disabled` or `armature.disabled.<profile-id>` instead of repeating a
+permission condition in every rule. `player.has-permission` remains useful for
+rule-specific animation conditions.
+
+### Current item and equipment
+
+The profile match remains the primary item selector. These conditions are for
+additional runtime checks:
+
+| Condition | Type | Meaning |
+| --- | --- | --- |
+| `item.main-hand.type` | item ID | Type/identity of the main-hand item. |
+| `item.off-hand.type` | item ID | Type/identity of the off-hand item. |
+| `item.main-hand.amount` | number | Stack amount in the main hand. |
+| `item.main-hand.durability` | number | Current durability or damage value. |
+| `item.main-hand.durability-percent` | number | Remaining durability percentage. |
+| `item.main-hand.uses` | number | Remaining or consumed uses when available. |
+| `item.main-hand.has-enchantment` | parameterized boolean | Whether a named enchantment exists. |
+| `item.main-hand.has-tag` | parameterized boolean | Whether a custom tag exists. |
+| `item.main-hand.has-pdc` | parameterized boolean | Whether a namespaced PDC value exists. |
+| `player.held-slot` | number | Current hotbar slot. |
+| `player.held-hand` | enum | `main-hand` or `off-hand`. |
+| `player.has-off-hand-item` | boolean | The off hand is not empty. |
+| `player.armor-piece` | parameterized item | A named armor slot's item. |
+
+## Animation and session state
+
+These values allow events and animation rules to react to Armature's own
+runtime state without reading renderer internals.
+
+### Movement state
+
+| Condition | Type | Meaning |
+| --- | --- | --- |
+| `movement.active` | boolean | A movement rule currently matches. |
+| `movement.id` | string | Identifier of the selected movement rule. |
+| `movement.previous` | string | Previously selected movement rule. |
+| `movement.changed` | boolean | The selected movement changed this update. |
+| `movement.entered` | parameterized boolean | A named movement was just entered. |
+| `movement.left` | parameterized boolean | A named movement was just left. |
+| `movement.transitioning` | boolean | A movement transition is in progress. |
+| `movement.transition-progress` | number | Transition progress from `0.0` to `1.0`. |
+
+### Action state
+
+| Condition | Type | Meaning |
+| --- | --- | --- |
+| `action.active` | boolean | An action is currently playing. |
+| `action.id` | string | Current action identifier. |
+| `action.progress` | number | Current action progress from `0.0` to `1.0`. |
+| `action.elapsed` | duration | Time since the action started. |
+| `action.remaining` | duration | Time remaining in the action. |
+| `action.completed` | boolean | The current action completed this update. |
+| `action.cancelled` | boolean | The current action was cancelled this update. |
+| `action.interruptible` | boolean | The current action can be replaced. |
+| `action.cooldown-ready` | parameterized boolean | A named action can trigger again. |
+
+Modern actions always use the exclusive `replace` channel. Additive rules
+provide the separate continuous composition channel; they do not set an
+action mode.
+
+### Mining state
+
+| Condition | Type | Meaning |
+| --- | --- | --- |
+| `block.mining` | boolean | A main-hand mining session is active. |
+| `block.mining.elapsed` | duration | Ticks elapsed since mining started. |
+| `block.mining.block` | string | Namespaced block being mined. |
+| `block.mining.tool` | string | Namespaced item in the main hand. |
+| `block.mining.face` | enum | Block face being mined. |
+| `block.mining.instant` | boolean | The latest block damage reported instant break. |
+
+`block.mining.elapsed` is elapsed time, not a percentage: the public Bukkit
+events do not expose the server's internal block-break percentage. Use the
+boolean state for a loop and the `block:mining-start`/`block:mining-stop`
+signals for one-shot start and end animations. Creative mode has no survival
+mining-progress session, but repeated block-start/break signals keep
+`block.mining` active while the player continues hitting blocks. It expires
+after eight ticks without another hit; the last non-air block ID is retained
+when the scheduled packet callback sees a block already removed by the break.
+
+### Animation and additive state
+
+| Condition | Type | Meaning |
+| --- | --- | --- |
+| `animation.id` | string | Current rendered animation identifier. |
+| `animation.progress` | number | Current animation progress. |
+| `animation.elapsed` | duration | Time since the animation started. |
+| `animation.remaining` | duration | Time remaining. |
+| `animation.marker` | parameterized boolean | A named marker was reached this update. |
+| `animation.loop-index` | number | Current loop iteration. |
+| `additive.active` | boolean | At least one additive layer is active. |
+| `additive.<id>.active` | boolean | A named additive layer is active. |
+| `additive.<id>.weight` | number | Current weight of a named additive layer. |
+
+## Event and timing context
+
+These conditions are only meaningful while evaluating an event or callback:
+
+| Condition | Type | Meaning |
+| --- | --- | --- |
+| `event.type` | string | Normalized event type. |
+| `event.signal` | namespaced string | External or provider signal. |
+| `event.source` | enum | Built-in, provider, Skript, Denizen, API, or marker. |
+| `event.argument.<name>` | typed value | Argument supplied with the event. |
+| `event.elapsed` | duration | Time since the triggering event. |
+| `session.age` | duration | Time since the profile session started. |
+| `session.first-equip` | boolean | This is the first activation of the session. |
+| `cooldown.<id>.ready` | boolean | A named cooldown is ready. |
+| `cooldown.<id>.remaining` | duration | Remaining cooldown time. |
+
+## Custom and external values
+
+Built-in conditions should remain stable and cheap. Custom values can extend
+the same syntax. Declare shared variables in `plugins/Armature/variables.yml`:
+
+```yaml
+variables:
+  stamina:
+    type: number
+    source: placeholderapi
+    placeholder: "%player_stamina%"
+    refresh: 2t
+```
+
+Then reference them in a profile:
+
+```yaml
+animations:
+  additives:
+    - animation: breathing
+      weight:
+        parameter: variable.stamina
+        input: [0, 100]
+        output: [1.0, 0.15]
+```
+
+PlaceholderAPI values should be declared with a type and a refresh interval.
+They should not be parsed independently for every condition on every tick.
+
+Provider-specific gameplay state remains namespaced:
+
+```yaml
+when:
+  - weaponmechanics.ammo == weaponmechanics.magazine-size
+  - weaponmechanics.aiming == false
+```
+
+Armature should expose provider values through adapters but should not invent
+generic built-in conditions for ammo, damage, reloads, mana, or other gameplay
+state.
+
+
+
+## Selection-specific conditions
+
+`match.when` and variant selection use external state/shared variables, not
+animation or selected-variant/accessory results. Mount conditions may use their
+profile's selected `variant.active`, but not another mount's active state.
+Animation rules can use `variant.active` and `attachment.<id>.active`.
+
+```yaml
+when:
+  permissions:
+    any: [cosmetics.gold, cosmetics.admin]
+    none: [cosmetics.disabled]
+  all:
+    - variable.weapon-skin == gold
+```
+
+Criteria in a structured condition block combine with AND; a permissions `any`
+list supplies alternatives. [Variables](variables.md) explains missing values,
+types and refresh. Query availability depends on the actual runtime/provider
+context; an optional source must be installed and configured before relying on it.
