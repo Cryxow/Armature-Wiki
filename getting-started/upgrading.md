@@ -60,7 +60,7 @@ obsolete `migration` blocks are removed on startup with a configuration backup.
 
 Move the original outside the loaded profiles directory before activating its
 replacement, so duplicate profile IDs cannot compete. Then run
-`/armature profile reload` and `/armature profile inspect <player>`, equip the
+`/armature reload profiles` and `/armature profile inspect <player>`, equip the
 matching item and test the movement/action clips. A `.migrated.yml` file is still
 a loadable profile: review it before issuing any profile/full reload.
 

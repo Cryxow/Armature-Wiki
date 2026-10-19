@@ -41,6 +41,7 @@ An animation named `fire` does not fire a weapon.
 | Reusable animated accessories and nested composite models | [Attachments](getting-started/profiles/attachments.md) |
 | Optional Fabric rendering at client frame rate | [Client mod](client-mod/installation.md) |
 | Provider-generated packs and an optional separate renderer pack | [Resource packs](configuration/resource-packs.md) |
+| Centralized `/armature reload <target>` commands | [Commands](getting-started/commands-and-permissions.md#reload-operations) |
 
 The modern profile format, public API and scripting integrations continue to be
 available. [Supported plugins](advanced/supported-plugins/README.md) distinguishes

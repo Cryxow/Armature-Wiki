@@ -20,7 +20,7 @@ senders are supported unless a command explicitly needs a player context.
 ```text
 /armature help [domain]
 /armature status
-/armature reload [all|pack|config|models|profiles]
+/armature reload [all|config|profiles|models|pack|providers]
 /armature enable
 /armature disable
 /armature config ...
@@ -50,35 +50,40 @@ a catalog.
 
 Permission: `armature.command.status`.
 
-## Explicit reload operations
+## Reload operations
 
-```text
-/armature reload all
-/armature reload [pack|config|models|profiles]
-/armature config reload
-/armature profile reload
-/armature diagnostics models reload
-/armature diagnostics pack rebuild
-/armature diagnostics pack sync
-/armature diagnostics startup
-```
+All reloads use `/armature reload <target>`:
 
-`/armature reload all` is the recommended one-command full Armature reload. It
-rebuilds configuration, profiles, renderer models, and Armature's resource
-pack, but does not regenerate external provider packs. Run the provider's own
-reload command afterward when its pack must include the new Armature assets
-(for example, `/ce reload all` for CraftEngine). The other
-`/armature reload <target>` forms remain supported as quick operator shortcuts.
-The grouped commands expose the same targeted operations with more contextual
-help. Every operation reports elapsed stages and preserves the last known-good
-runtime when its candidate fails.
+| Target | Operation |
+| --- | --- |
+| `config` | Reload and validate `config.yml` only. |
+| `profiles` | Reload profile files only. |
+| `models` | Reload renderer model assets only. |
+| `pack` | Rebuild Armature's resource pack. |
+| `providers` | Request external resource-pack provider generation without rebuilding Armature. |
+| `all` | Reload configuration, profiles, models and Armature's pack. |
+
+Without a target, `/armature reload` reloads configuration, profiles and models;
+pack generation follows `resource-pack.generation.on-reload`. Explicit `pack`
+and `all` targets generate Armature's pack even when automatic triggers are disabled.
+
+`all` rebuilds Armature assets; provider bridges can regenerate their packs when
+those assets change. `/armature reload providers` explicitly requests generation
+from the supported CraftEngine and Nexo bridges without rebuilding Armature.
+ItemsAdder retains its own full pack-generation workflow.
+Each operation reports elapsed stages and keeps the last known-good runtime
+when its candidate fails. `/armature help reload` explains the targets;
+autocompletion lists them.
+
+Reload operations are no longer available under `config`, `profile` or
+`diagnostics`. `/armature diagnostics startup` reports operation state and timing;
+`/armature diagnostics pack` reports pack state without changing it.
 
 Permission: `armature.command.reload`.
 
 ## `/armature config`
 
 ```text
-/armature config reload
 /armature config validate
 /armature config migrate <file> [--output <file>] [--local|--ai]
 /armature config restore-defaults [--confirm]
@@ -104,7 +109,6 @@ Permission: `armature.command.reload` for `validate` and `restore-defaults`;
 ## `/armature profile`
 
 ```text
-/armature profile reload
 /armature profile list [player]
 /armature profile inspect <player>
 /armature profile enable <player> <profile>
@@ -190,18 +194,15 @@ Permission: `armature.command.editor`.
 /armature diagnostics doctor
 /armature diagnostics performance
 /armature diagnostics pack
-/armature diagnostics models reload
-/armature diagnostics pack rebuild
-/armature diagnostics pack sync
 /armature diagnostics startup
 /armature diagnostics export
 ```
 
 `doctor` produces a preflight report with stable finding codes where available.
 `performance` retains the existing player-only live performance bossbar.
-`pack` reports generated-pack and ownership state. `pack rebuild` regenerates the
-Armature candidate. `pack sync` requests external provider publication without
-rebuilding Armature models. `models reload` reloads renderer assets only.
+`pack` reports generated-pack and ownership state without rebuilding or synchronizing assets.
+Use `/armature reload pack`, `/armature reload models` or `/armature reload providers`
+for those operations.
 `startup` reports live operation state and stage timings. `export` immediately schedules
 an anonymized, bounded support bundle off-thread, then reports the relative
 `plugins/Armature/diagnostics/armature-support-<timestamp>.zip` path when the
@@ -285,4 +286,4 @@ state.
 | `armature.disabled` | Player opt-out | false |
 
 
-Pack generation controls: `/armature reload pack`, `/armature reload all` and `/armature diagnostics pack rebuild` explicitly generate even when automatic triggers are disabled. Config/profile/model reloads obey `resource-pack.generation.on-reload`. `/armature diagnostics pack` reports published generation options, validation findings, size and duration. `/armature diagnostics pack sync` requests existing provider synchronization; it does not bypass Armature generation settings.
+Pack generation controls: `/armature reload pack` and `/armature reload all` explicitly generate even when automatic triggers are disabled. Config/profile/model reloads obey `resource-pack.generation.on-reload`. `/armature diagnostics pack` reports published generation options, validation findings, size and duration. `/armature reload providers` requests existing provider synchronization; it does not bypass Armature generation settings.

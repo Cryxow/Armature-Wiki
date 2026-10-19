@@ -33,11 +33,11 @@ authoring inputs. Keep provider sources in the provider's documented directories
 ## Generate and synchronize
 
 1. Apply model/profile/config changes with `/armature reload all` or targeted
-   commands. `/armature diagnostics pack rebuild` rebuilds Armature assets.
-2. Run the provider's full pack generation workflow, for example
-   `/ce reload all` with CraftEngine. Armature reload does not execute it for you.
-3. Use `/armature diagnostics pack sync` when synchronizing newly completed
-   provider output; inspect progress and completion diagnostics.
+   commands. `/armature reload pack` rebuilds Armature assets.
+2. Request CraftEngine/Nexo generation with `/armature reload providers`, or
+   use the provider's full generation workflow. ItemsAdder keeps its own generation command.
+3. Inspect `/armature diagnostics startup` and `/armature diagnostics pack`
+   for progress, completion and pack state.
 4. Deliver the **provider's final pack** and wait for the client's download and
    resource reload. Validate the actual downloaded assets in game.
 

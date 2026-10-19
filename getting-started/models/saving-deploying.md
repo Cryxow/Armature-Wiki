@@ -22,7 +22,7 @@ Reference `model.name: my_rifle` in a profile. Model IDs derive from filenames
 without extension; keep IDs unique even across different subdirectories.
 Compatible `.bbmodel` assets can live beside v2 assets under the native backend.
 
-Use `/armature diagnostics models reload` for source changes. If clips or bones
+Use `/armature reload models` for source changes. If clips or bones
 referenced by a profile changed, reload profiles too; `/armature reload all`
 applies the complete Armature candidate.
 

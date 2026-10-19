@@ -83,7 +83,7 @@ API-created presentations have their own explicit inline-variable contract.
 
 ## Load safely
 
-Run `/armature profile reload`, inspect warnings, and use
+Run `/armature reload profiles`, inspect warnings, and use
 `/armature profile inspect <player>`. A malformed file is not repaired by reload.
 Linking errors such as unknown accessory profiles, cycles, unknown variables
 or invalid selection conditions reject the candidate library; the active

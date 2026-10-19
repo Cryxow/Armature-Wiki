@@ -46,7 +46,7 @@ without its extension; the containing folder is not part of this ID.
 ## 3. Load and deliver
 
 Run `/armature reload all`. If an external provider owns your pack, run its own
-generation/reload workflow and then `/armature diagnostics pack sync` as needed.
+generation/reload workflow and then `/armature reload providers` as needed.
 Deliver that provider's final pack to the player. Without a provider, enable
 standalone ZIP generation and host/deliver it as described in [Resource packs](../configuration/resource-packs.md).
 

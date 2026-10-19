@@ -13,9 +13,9 @@ are preserved during schema upgrades, so a live installation can differ.
 
 | Requirement | Operation |
 | --- | --- |
-| Reload | `/armature config reload` |
+| Reload | `/armature reload config` |
 | Restart | Fully stop/start the server; includes backend, client bridge and renderer-pack split |
-| Pack rebuild | `/armature diagnostics pack rebuild`, then the external provider's generation workflow |
+| Pack rebuild | `/armature reload pack`, then the external provider's generation workflow |
 | Client reload | Deliver/download the final changed pack; a server config reload alone is insufficient |
 
 Run `/armature config validate` for the current schema's allowed values and

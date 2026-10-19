@@ -50,7 +50,7 @@ An accessory can override physics settings per instance.
 - **Find an alignment issue:** disable procedural layers temporarily and compare
   the model's rest pose. Restore desired layers after fixing pivots.
 
-Apply these settings with `/armature config reload`. Rebuild/download only when
+Apply these settings with `/armature reload config`. Rebuild/download only when
 also changing a pack-affecting option. Test on the client that will actually be
 used: server-tick rendering and the optional frame-rate client renderer can feel
 different. [Physics authoring](../getting-started/models/physics.md) explains pivots.

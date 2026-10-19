@@ -54,7 +54,7 @@ directory is automatically installed for the other renderer.
 
 ## Apply and verify
 
-Run `/armature config reload` after mappings change, rebuild Armature assets,
+Run `/armature reload config` after mappings change, rebuild Armature assets,
 regenerate the provider final pack and download it. Test each equipment slot,
 mixed leggings/boots materials, dyed leather, trims, removal and moving joints.
 If the texture is missing, check both the selected identity/type and the final
