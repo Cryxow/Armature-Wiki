@@ -13,7 +13,6 @@ identity, gameplay and, where applicable, final resource-pack delivery.
 | [Nexo](nexo.md) | `nexo:id` | Identity; generic item/vanilla triggers | Yes, Nexo owns delivery | — |
 | [CraftEngine](craftengine.md) | `craftengine:namespace:id` | Identity; generic item/vanilla triggers | Yes, CraftEngine owns delivery | — |
 | [WeaponMechanics](weaponmechanics.md) | `weaponmechanics:weapon_title` | Fire, aim, reload, firearm/fire mode and weapon state | Not a pack provider | Presentation events and attachment overrides |
-| QualityArmory | `qualityarmory:id` | Item identification and compatibility action provider; no full namespaced event/state integration promised | No | Use owning plugin/public API for additional signals |
 | [Skript](skript.md) | Use the item's existing identity | Script-emitted signals, animation lifecycle | No | Embedded effects/expressions/events |
 | [MythicMobs](mythicmobs.md) | Use the item's existing identity | Skill signals, animation lifecycle | No | Embedded mechanics/triggers |
 | [Denizen](denizen.md) | Use the item's existing identity | Script signals, animation lifecycle | No | Embedded command/events |
