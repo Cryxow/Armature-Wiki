@@ -1,0 +1,18 @@
+wiki_sword:
+  match:
+    item: minecraft:diamond_sword
+  model:
+    name: arm_sword
+    hide-vanilla-hand: true
+  animations:
+    movement:
+      - animation: base
+    actions:
+      - trigger: player:attack
+        animation:
+          name: swing
+          cooldown: 3t
+      - trigger: item:equip
+        animation: equip
+      - trigger: item:unequip
+        animation: unequip

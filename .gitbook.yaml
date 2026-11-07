@@ -1,0 +1,20 @@
+root: ./
+structure:
+  readme: ./README.md
+  summary: ./SUMMARY.md
+redirects:
+  introduction: README.md
+  premiers-pas: premiers-pas/installation.md
+  premiers-pas/configuration: premiers-pas/configuration.md
+  premiers-pas/modele-blockbench: premiers-pas/modele-blockbench.md
+  premiers-pas/profils: premiers-pas/profils/README.md
+  premiers-pas/profils/regrouper-les-items: premiers-pas/profils/regrouper-les-items.md
+  avance: avance/plugins-pris-en-charge/README.md
+  avance/armures-personnalisees: avance/armures-personnalisees.md
+  avance/meilleurs-reglages: avance/meilleurs-reglages.md
+  avance/plugins-pris-en-charge: avance/plugins-pris-en-charge/README.md
+  avance/plugins-pris-en-charge/itemsadder: avance/plugins-pris-en-charge/itemsadder.md
+  avance/plugins-pris-en-charge/nexo: avance/plugins-pris-en-charge/nexo.md
+  avance/plugins-pris-en-charge/craftengine: avance/plugins-pris-en-charge/craftengine.md
+  avance/plugins-pris-en-charge/weaponmechanics: avance/plugins-pris-en-charge/weaponmechanics.md
+  depannage: depannage.md

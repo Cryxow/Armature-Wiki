@@ -1,139 +1,66 @@
-# 🛍️ Regrouper les items
+---
+description: "Sélection et regroupement des objets"
+---
 
-Un profil peut associer plusieurs items à un modèle et un ensemble d’animations. Armature résout les sélecteurs lors du chargement des profils, puis chaque item correspondant pointe vers le même profil.
+# 🧲 Sélection et regroupement des objets
 
-## Quand utiliser le regroupement
-
-Utilisez-le lorsque plusieurs items partagent :
-
-* le même modèle BetterModel ;
-* les mêmes animations.
-
-Exemple : faire utiliser le rig `fp_sword` à toutes les épées vanilla.
-
-## Le champ `items`
+Un sélecteur exact est compact :
 
 ```yaml
-swords:
+match:
+  item: minecraft:diamond_sword
+```
+
+Les groupes et les motifs sont pris en charge :
+
+```yaml
+match:
   items:
-    - family: swords
-  model: fp_sword
-  animations:
-    idle: sword_idle
-    swing:
-      name: sword_swing
-      duration-ticks: 8
+    - family: blocks
+    - "*_LEAVES"
+    - minecraft:glass
 ```
 
-La liste `items` accepte les IDs d’items exacts, familles d’items et motifs. Chaque item résolu reçoit le profil `swords`.
-
-Les sélecteurs peuvent être mélangés :
+Les touches dédiées équivalentes sont `families` et `patterns`. La correspondance structurée ne nécessite pas de fournisseur :
 
 ```yaml
-combat_tools:
-  items:
-    - minecraft:diamond_sword
-    - minecraft:netherite_sword
-    - family: axes
-    - pattern: "*_HOE"
-  model: fp_combat
-  animations:
-    idle: combat_idle
-    swing: combat_swing
+match:
+  item:
+    material: minecraft:paper
+    data:
+      custom-model-data: 12001
+      item-model: "myplugin:rifle"
+      pdc:
+        "myplugin:variant": rifle
+      tags:
+        CustomTag: value
 ```
 
-## Types de sélecteurs
-
-### Item exact
-
-Utilisez le format `namespace:item` :
+Les correspondances de sélecteur peuvent exclure des objets exacts, des familles ou des motifs :
 
 ```yaml
-items:
-  - minecraft:diamond_sword
-  - weaponmechanics:m4a1
-```
-
-Les identités personnalisées sont utilisables lorsqu’un fournisseur les expose. Les motifs génériques sont actuellement pris en charge uniquement pour les items vanilla.
-
-### Familles vanilla
-
-Les familles regroupent les matériaux vanilla classés par Armature :
-
-```yaml
-items:
-  - family: swords
-  - family: pickaxes
-  - family: tools
-```
-
-Familles disponibles : `blocks`, `generic`, `tools`, `swords`, `pickaxes`, `axes`, `shovels`, `hoes`, `bows`, `crossbows`, `food`, `potions`, `projectiles` et `throwables`.
-
-Les noms pluriels sont acceptés. `tools` inclut les pioches, haches, pelles et houes.
-
-La forme courte est aussi valide :
-
-```yaml
-items:
-  - swords
-  - tools
-```
-
-### Motifs vanilla
-
-Les motifs utilisent `\*` pour un nombre quelconque de caractères et `?` pour un caractère :
-
-```yaml
-items:
-  - pattern: "*_SWORD"
-  - pattern: "minecraft:*_LEAVES"
-```
-
-Un motif sans namespace cible Minecraft. Les familles et motifs génériques sont actuellement limités aux items vanilla.
-
-## Raccourcis au niveau du profil
-
-Au lieu de placer les sélecteurs dans `items`, utilisez `families` et `patterns` :
-
-```yaml
-vanilla_weapons:
+match:
   families:
     - swords
-    - bows
-  patterns:
-    - "*_CROSSBOW"
-  model: fp_weapon
-  animations:
-    idle: weapon_idle
-    swing: weapon_swing
+  exclude:
+    items:
+      - minecraft:diamond_sword
+    families:
+      - shield
+    patterns:
+      - "*_AXE"
 ```
 
-`item`, `items`, `families` et `patterns` sont combinés. Les sélecteurs dupliqués dans un profil sont dédoublonnés.
+`exclude.items` accepte les identifiants d’objets exacts, `family:` les sélecteurs, et `pattern:` les sélecteurs. Toutes les exclusions sont appliquées après l’inclusion, et une exclusion prime. La correspondance structurée `item` ne peut utiliser que des exclusions de matériaux Minecraft et ne peut être combinée avec l’inclusion `items`, `families` ou `patterns`. Les correspondances d’objets dupliquées et les identifiants de profil dupliqués rendent le fichier contenant invalide. Le démarrage et le rechargement avertissent et ignorent les fichiers invalides. Les fichiers valides restent actifs. Un rechargement ne désactive jamais le plugin à cause d’un seul fichier de profil mauvais.
 
-## Règles importantes
+## Activation et permissions
 
-* Chaque item ne peut correspondre qu’à un seul profil chargé.
-* Si deux profils ciblent le même item, le rechargement est refusé avec une erreur de correspondance dupliquée.
-* Un profil doit avoir au moins un sélecteur, un `model` et une section `animations`.
-* Appliquez les changements avec `/armature reload`.
-* Si la validation échoue, l’ensemble de profils actif précédent reste utilisé.
-* Familles et motifs sont développés à partir des matériaux vanilla disponibles au chargement des profils.
+`match.when` peut conditionner un profil autrement correspondant grâce à un état externe ou des variables partagées. Utilisez `player.has-permission:<node>` ou un bloc `permissions` avec `any`, `all`, `none`. Les conditions de sélection ne peuvent dépendre des résultats d’animation/variant/attachment de cette sélection elle-même.
 
-## Exemple complet
+L’accès au profil peut être désactivé pour les joueurs sélectionnés sans modifier le fichier de profil. Accordez `armature.disabled` pour désactiver toute présentation Armature pour le joueur, ou accordez `armature.disabled.<profile-id>` pour désactiver uniquement un profil. Pour le profil ci-dessus, la permission ciblée est `armature.disabled.m4a1`.
 
-```yaml
-vanilla_swords:
-  items:
-    - family: swords
-    - pattern: "*_SWORD"
-  model: fp_sword
-  sway-rate: 0.9
-  animations:
-    idle: sword_idle
-    walk: sword_walk
-    swing:
-      name: sword_swing
-      duration-ticks: 8
-```
+Le suffixe est la clé racine YAML minuscule du profil. Les permissions sont par défaut à false et sont destinées à servir de nœuds de désactivation gérés par LuckPerms ou un autre plugin de permissions. Supprimer un nœud permet au profil de reprendre sur le prochain cycle de joueur. Le jeu et l’objet tenu ne sont jamais modifiés. En tant qu’alternative de commande persistante, utilisez `/armature profile disable <player> <profile>` et `/armature profile enable <player> <profile>`.
 
-Commencez par des IDs exacts pour tester un modèle, puis élargissez à une famille ou un motif lorsque la présentation est correcte. Après chaque changement, vérifiez les logs de rechargement et testez un item représentatif de chaque groupe.
+## Vérifier l’identité choisie
+
+Les espaces de noms du fournisseur identifient les objets personnalisés réels : `itemsadder:...`, `nexo:...`, `craftengine:...`, `weaponmechanics:...`. Un nom d’affichage traduit n’est pas un identifiant. Utilisez `/armature profile inspect <player>` avec l’objet tenu réel, puis testez la main secondaire. Évitez les correspondances exactes superposées dans les exemples. La composition de modèle fait référence aux identifiants de profil et n’utilise pas le dossier contenant comme espace de nom.

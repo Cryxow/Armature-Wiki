@@ -1,157 +1,331 @@
-# 🛠️ Configuration
+---
+description: "Référence de configuration"
+---
 
-Armature lit `plugins/Armature/config.yml`. Les valeurs sont chargées au démarrage et par `/armature reload`.
+# ⚙️ Référence de configuration
 
-## `config.yml` complet
+Armature lit `plugins/Armature/config.yml`. Cette page reproduit les valeurs par défaut intégrées de la version 2.0.0 et décrit chaque option de feuille active. La migration de profil utilise des limites internes et ne dispose d’aucune configuration. Les valeurs des administrateurs existants sont conservées lors des mises à jour de schéma, de sorte qu’une installation en cours de fonctionnement peut différer.
+
+## Apporter un changement
+
+| Requis | Opération |
+| --- | --- |
+| Recharger | `/armature reload config` |
+| Redémarrer | Arrêter complètement/démarrer le serveur. Inclut le backend, le pont client et la séparation du pack de rendu |
+| Reconstruction du pack | `/armature reload pack`, puis le flux de génération du fournisseur externe |
+| Rechargement client | Livraison/téléchargement du pack final modifié. Un seul rechargement de configuration serveur est insuffisant |
+
+Exécuter `/armature config validate` pour les valeurs et exigences autorisées par le schéma actuel. Les candidats de rechargement invalides conservent l’état de fonctionnement connu bon. `config-version` appartient à Armature.
+
+## options config-version
 
 ```yaml
+config-version: 17
+
 input:
-  movement-threshold: 0.015
-  movement-stop-delay-ticks: 3
+  movement:
+    vertical-stop-delay-ticks: 3
+    # Horizontal distance travelled in one server tick before walk starts.
+    threshold: 0.015
+    # Consecutive stationary ticks required before walk/sprint returns to idle.
+    stop-delay-ticks: 3
 
 debug:
+  # Master switch for the debug categories below.
   enabled: false
+  teleportation: false
   tracker-lifecycle: true
   animations: true
-  empty-hand-mask: false
+  vanilla-hiding: false
+  # Native writing/reload and CraftEngine pack preparation phase timings.
+  pack-generation: false
+  # Model warning summaries in the console; errors are always reported.
+  # Full diagnostics remain available via /armature diagnostics native.
+  native-compiler-warnings: false
 
 render:
+    # native is the primary renderer and requires no BetterModel installation.
+    # bettermodel remains available; deprecation is planned for future versions.
+  backend: native
+  client-mod:
+    # Experimental optional Fabric 1.21.8 renderer for native .armature v2 models.
+    # Clients without the mod keep the configured server renderer.
+    enabled: true
   enabled: true
-  first-person-only: true
-  model-adaptation: true
-  vanilla-item-mode: mask
-  empty-hand-mask:
-    repair-server-materialization: true
+  dynamic-items:
+    # Preserve the outgoing model's items during unequip/deferred actions.
+    # The incoming model receives the current items when equip is activated.
+    # Applies to server rendering and the optional Fabric renderer.
+    defer-until-equipped: true
+  camera-rotation:
+    # Client-side Fabulous post-effect driven by the optional s_camera bone.
+    enabled: true
+    debug-mode: 'off'
+    zoom-correction:
+      # Crops the image to hide missing edges during camera-bone rotations.
+      # Disabled preserves the original FOV and does not apply any crop zoom.
+      enabled: true
+      # fixed keeps one constant zoom; dynamic adapts it to the bone rotation.
+      mode: fixed
+      # Fixed zoom factor, or maximum allowed factor in dynamic mode.
+      maximum-zoom: 1.25
+      # In fixed mode, widens the 3D source projection before applying the
+      # crop, preserving the player's visible world and viewmodel FOV.
+      # Breaks with Sodium.
+      preserve-fov: false
+    rotation-clamp:
+      # Limits the total 3D rotation received from the Blockbench camera bone.
+      enabled: true
+      maximum-degrees: 7.0
+  visibility:
+    first-person-only: true
+    follow-player-visibility: true
+  viewmodel:
+    model-adaptation: true
+    anti-clipping: true
+    y-lock: true
+    fov:
+      locked: true
+      degrees: 90.0
+  vanilla-hiding:
+    # packet-mask | core-shaders
+    # core-shaders sends a per-player GameTime channel and can conflict with
+    # other resource-pack shaders that also use GameTime. core-shaders never
+    # installs inventory-mask packets. PacketEvents action detection remains
+    # independent.
+    mode: core-shaders
+  anchor:
+    max-distance: 20
+    sync-interval-ticks: -1
   motion:
     sway:
       enabled: true
-      maximum-rotation: 4.0
+      # Applies look/movement sway rotation to the s_camera bone.
+      affects-camera-bone: true
+      maximum-rotation: 10
       look:
-        lerp-speed: 0.0
-        yaw-gain: 0.12
-        pitch-gain: 0.10
-        roll-gain: 0.05
+        lerp-speed: 20.0
+        yaw-gain: -0.1
+        pitch-gain: -0.1
+        roll-gain: -0.1
       movement:
-        lerp-speed: 14.0
-        yaw-gain: 0.20
-        pitch-gain: 0.06
-        roll-gain: 0.35
+        lerp-speed: 6.0
+        yaw-gain: 0
+        pitch-gain: 0
+        roll-gain: -5
     bob:
-      enabled: true
-      cycles-per-block: 1.8
+      enabled: false
+      cycles-per-block: 1
       horizontal-amplitude: 0.025
-      vertical-amplitude: 0.018
+      vertical-amplitude: 0.03
       roll-amplitude: 0.8
       frequency: 9.0
       damping: 0.9
     camera-follow:
+      enabled: false
+      frequency: 20.0
+      damping: 0.1
+      yaw-position-gain: 0
+      pitch-position-gain: 0
+      maximum-offset: 0.15
+      pitch-compensation: 0.3
+    # Physics-driven bones: model bones named phy_* stay perpendicular to
+    # the ground (their down axis follows the world, not the model's server
+    # rotation) and swing with movement acceleration and player turning.
+    # Only the native backend implements them; BetterModel ignores the
+    # prefix. The bone pivot is the rotation center.
+    physics:
       enabled: true
-      frequency: 9.0
-      damping: 0.9
-      yaw-position-gain: 0.0025
-      pitch-position-gain: 0.0020
-      maximum-offset: 0.035
-      pitch-compensation: 0.20
+      acceleration-gain: 4.0
+      maximum-angle: 25
+      # Spring response of the swing. frequency is how fast the bone chases
+      # the target, damping is how much it resists overshooting it (1.0 = no
+      # overshoot at all). With damping below 1.0 the bone swings past its rest
+      # pose and bounces back, which reads as a snap when the player stops:
+      # at frequency 4.0 / damping 0.6 a 25 degree return overshoots by
+      # ~2.1 degrees. Raise damping toward 1.0 to remove that bounce, or lower
+      # frequency for a slower, heavier settle.
+      frequency: 4.0
+      damping: 0.6
+      # Tilt added per degree/second of camera yaw turn. Keep small: mouse
+      # sway while looking up or down must not fling the bone sideways.
+      turn-gain: 0.25
 
-armor-mappings:
-  "your_namespace:knight_helmet": knight
+resource-pack:
+  # Optional separate renderer pack. The provider continues delivering the common pack.
+  # Set the external URL, enable, restart, then rebuild and publish both packs.
+  renderer-pack:
+    enabled: false
+    # Host plugins/Armature/renderer_pack.zip here. {sha1} can version the URL.
+    url: ""
+    prompt: "Armature server rendering"
+  # Also write plugins/Armature/resource_pack.zip when Armature generates assets.
+  generate-zip: false
+  # Automatic Armature publication. Explicit pack/all reloads always generate.
+  generation:
+    on-startup: true
+    on-reload: true
+    on-provider-change: true
+  # Empty keeps the backend's description. Does not rename a provider's final pack.
+  description: ""
+  # Filters bundled overlays; does not convert models for other client versions.
+  supported-version:
+    min: "1.21.4"
+    max: latest
+  validation:
+    enable: true
+    fail-on-error: false
+    check-models: true
+    check-textures: true
+    check-atlases: true
+  optimization:
+    json:
+      enable: false
+      exclude: []
+    texture:
+      enable: false
+      compression-level: 9
+      exclude: []
+  # Standalone Armature ZIP only. Path relative to plugins/Armature.
+  zip:
+    path: resource_pack.zip
+    method: deflated
+    compression-level: 6
+  # Deterministic ownership when two sources publish one normalized path.
+  # keep-existing preserves the first external owner; replace lets Armature
+  # win when its generated source is involved; error aborts the candidate.
+  collision-policy: keep-existing
+  # Optional first-match rules: [{source: provider, namespace: ns, path: ns:foo/**, policy: replace}]
+  collision-rules: []
+  exclusions:
+    # Source owner IDs are normalized lowercase and match exactly.
+    sources: []
+    # Namespace IDs are normalized lowercase and match assets/<namespace>/**.
+    namespaces: []
+    # Paths use forward slashes; * stays within one segment, ** crosses segments.
+    paths: []
 ```
 
-## Entrée
+## options de version de configuration
 
-`input.*`
+| Option | Valeur par défaut | Valeurs acceptées | Prise en compte | Utilité |
+| --- | --- | --- | --- | --- |
+| `config-version` | `17` | un entier >= 0 | redémarrage | Version du schéma géré. Ne modifiez pas manuellement. |
 
-| Clé                         | Type   | Signification                                                                                                                                                                                                      |
-| --------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `movement-threshold`        | nombre | Distance horizontale par tick serveur requise avant qu’Armature considère le joueur comme marchant. Des valeurs plus basses détectent les mouvements subtils ; des valeurs plus hautes réduisent les tremblements. |
-| `movement-stop-delay-ticks` | entier | Nombre de ticks immobiles avant que la boucle marche/course revienne à l’état inactif. Des valeurs plus hautes évitent les clignotements lors d’un bref arrêt.                                                     |
+## options d’entrée
 
-## Débogage
+| Option | Valeur par défaut | Valeurs acceptées | Prise en compte | Utilité |
+| --- | --- | --- | --- | --- |
+| `input.movement.vertical-stop-delay-ticks` | `3` | un entier >= 0 | rechargement | Ticks verticaux stationnaires avant la fin d’une transition de mouvement vertical. |
+| `input.movement.threshold` | `0.015` | un nombre fini dans [0, 100] | rechargement | Distance horizontale parcourue en un tick du serveur avant le début de la marche. |
+| `input.movement.stop-delay-ticks` | `3` | un entier >= 0 | rechargement | Nombre de ticks stationnaires requis avant que la marche/cours ne retourne à l’état inactif. |
 
-`debug.*`
+## options de débogage
 
-| Clé                 | Type    | Signification                                                                                                                                                                        |
-| ------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `enabled`           | booléen | Interrupteur principal des logs de diagnostic. Gardez `false` en production.                                                                                                         |
-| `tracker-lifecycle` | booléen | Journalise la création, la récupération et la fermeture des trackers BetterModel lorsque le débogage est activé.                                                                     |
-| `animations`        | booléen | Journalise la distribution, le remplacement, la vitesse et la fin des animations lorsque le débogage est activé.                                                                     |
-| `empty-hand-mask`   | booléen | Journalise l’historique du slot sélectionné, les mutations de l’inventaire serveur et l’état du masque client. À utiliser uniquement pour diagnostiquer le masquage de la main vide. |
+| Option | Valeur par défaut | Valeurs acceptées | Prise en compte | Utilité |
+| --- | --- | --- | --- | --- |
+| `debug.enabled` | `false` | `true` ou `false` | rechargement | Interrupteur principal pour les catégories de débogage ci-dessous. |
+| `debug.teleportation` | `false` | `true` ou `false` | rechargement | Activer la catégorie de diagnostic de téléportation. L’interrupteur de débogage principal s’y applique également. |
+| `debug.tracker-lifecycle` | `true` | `true` ou `false` | rechargement | Activer la catégorie de diagnostic du cycle de vie du tracker. L’interrupteur de débogage principal s’y applique également. |
+| `debug.animations` | `true` | `true` ou `false` | rechargement | Activer la catégorie de diagnostic d’animations. Le interrupteur de débogage maître s’applique également. |
+| `debug.vanilla-hiding` | `false` | `true` ou `false` | rechargement | Activer la catégorie de diagnostic de masquage vanilla. L’interrupteur de débogage maître s’applique également. |
+| `debug.pack-generation` | `false` | `true` ou `false` | rechargement | Temps d’exécution de la phase de préparation du pack CraftEngine et du moteur de rendu natif. |
+| `debug.native-compiler-warnings` | `false` | `true` ou `false` | rechargement | Résumés d’avertissements de modèle dans la console. Les erreurs sont toujours signalées. Les diagnostics complets restent disponibles via /armature diagnostics native. |
 
-## Rendu
+## options de rendu
 
-`render.*`
+| Option | Valeur par défaut | Valeurs acceptées | Prise en compte | Utilité |
+| --- | --- | --- | --- | --- |
+| `render.backend` | `native` | `bettermodel` ou `native` | redémarrage | Le moteur de rendu natif est le principal et ne nécessite pas d’installation de BetterModel. bettermodel reste disponible. Une dépréciation est prévue pour les futures versions. |
+| `render.client-mod.enabled` | `true` | `true` ou `false` | redémarrage | Moteur de rendu Fabric 1.21.8 optionnel et expérimental pour les modèles .armature v2 natifs. Les clients sans ce mod conservent le moteur de rendu du serveur configuré. |
+| `render.enabled` | `true` | `true` ou `false` | rechargement | Activer le rendu à la première personne tant que le plugin reste chargé. |
+| `render.dynamic-items.defer-until-equipped` | `true` | `true` ou `false` | rechargement | Conserver les objets du modèle sortant pendant les actions de déséquipement ou différées. Le modèle entrant reçoit les objets actuels lorsque l’équipement est activé. S’applique au rendu serveur et au moteur de rendu Fabric optionnel. |
+| `render.camera-rotation.enabled` | `true` | `true` ou `false` | reconstruction du pack et rechargement côté client | Effet post-Fabulous côté client piloté par l’os optionnel s_camera. |
+| `render.camera-rotation.debug-mode` | `'off'` | `off`, `identity`, `signature`, `metadata`, `fixed-basis`, `uv` ou `status` | reconstruction du pack et rechargement côté client | Mode de débogage. |
+| `render.camera-rotation.zoom-correction.enabled` | `true` | `true` ou `false` | reconstruction du pack et rechargement côté client | Recadre l’image pour masquer les bords manquants lors des rotations caméra-os. Désactivé conserve le champ de vision (FOV) original et n’applique aucun recadrage de zoom. |
+| `render.camera-rotation.zoom-correction.mode` | `fixed` | `fixed` ou `dynamic` | reconstruction du pack et rechargement côté client | le zoom fixe conserve un facteur de zoom constant. Le dynamique l’adapte à la rotation de l’os. |
+| `render.camera-rotation.zoom-correction.maximum-zoom` | `1.25` | un nombre fini dans [1, 4] | reconstruction du pack et rechargement côté client | Facteur de zoom fixe, ou facteur maximal autorisé en mode dynamique. |
+| `render.camera-rotation.zoom-correction.preserve-fov` | `false` | `true` ou `false` | reconstruction du pack et rechargement côté client | En mode fixe, élargit la projection 3D de la source avant d’appliquer le recadrage, préservant le monde visible du joueur et son FOV de vue. Incompatible avec Sodium. |
+| `render.camera-rotation.rotation-clamp.enabled` | `true` | `true` ou `false` | reconstruction du pack et rechargement côté client | Limite la correction de caméra animée au maximum configuré. |
+| `render.camera-rotation.rotation-clamp.maximum-degrees` | `7.0` | un nombre fini dans [0, 180] | reconstruction du pack et rechargement côté client | Amplitude maximale de la correction de caméra, en degrés, lorsque la limite est activée. |
+| `render.visibility.first-person-only` | `true` | `true` ou `false` | rechargement | Restreindre la présentation à la vue à la première personne. |
+| `render.visibility.follow-player-visibility` | `true` | `true` ou `false` | rechargement | Suivre la visibilité/invisibilité du joueur pour décider du rendu. |
+| `render.viewmodel.model-adaptation` | `true` | `true` ou `false` | reconstruction du pack | Adapter les modèles sources pris en charge à la scène à la première personne sans réécrire les fichiers. |
+| `render.viewmodel.anti-clipping` | `true` | `true` ou `false` | reconstruction du pack et rechargement côté client | Générer le chemin du shader de la vue pour que la géométrie d’Armature puisse se rendre à travers les blocs. |
+| `render.viewmodel.y-lock` | `true` | `true` ou `false` | rechargement | Maintenir la position verticale de la vue stable dans le chemin de shader pris en charge. |
+| `render.viewmodel.fov.locked` | `true` | `true` ou `false` | reconstruction du pack et rechargement côté client | Utiliser un champ de vision de la vue fixe indépendant du champ de vision du monde. |
+| `render.viewmodel.fov.degrees` | `90.0` | un nombre fini dans l’intervalle ouvert (1, 179) | reconstruction du pack et rechargement côté client | Champ de vision du modèle en degrés lorsque le verrouillage est activé. |
+| `render.vanilla-hiding.mode` | `core-shaders` | `packet-mask` ou `core-shaders` | rechargement, reconstruction du pack, rechargement du client | packet-mask / core-shaders : core-shaders envoie un canal GameTime par joueur et peut entrer en conflit avec d’autres shaders de pack de ressources utilisant également GameTime. core-shaders n’installe jamais de paquets inventory-mask. La détection d’action PacketEvents reste indépendante. |
+| `render.anchor.max-distance` | `20` | un nombre fini dans [0, 128] | rechargement | Distance maximale de séparation des ancres du serveur avant correction. |
+| `render.anchor.sync-interval-ticks` | `-1` | un entier de -1 à 20000 inclus | rechargement | Intervalle de synchronisation des ancres ; -1 utilise la politique du backend. |
+| `render.motion.sway.enabled` | `true` | `true` ou `false` | rechargement | Activer l’oscillation procédurale de la vue/déplacement. |
+| `render.motion.sway.affects-camera-bone` | `true` | `true` ou `false` | rechargement | Appliquer la rotation de l’oscillation de la vue/déplacement à l’os s_camera. |
+| `render.motion.sway.maximum-rotation` | `10` | un nombre fini dans [0, 180] | rechargement | Rotation maximale combinée en degrés. |
+| `render.motion.sway.look.lerp-speed` | `20.0` | un nombre fini dans [0, 1000] | rechargement | Réponse de lissage du regard. Zéro supprime l’interpolation du regard. |
+| `render.motion.sway.look.yaw-gain` | `-0.1` | un nombre fini dans [-1000, 1000] | rechargement | Gain de yaw signé pour cette couche de mouvement. |
+| `render.motion.sway.look.pitch-gain` | `-0.1` | un nombre fini dans [-1000, 1000] | rechargement | Gain de pitch signé pour cette couche de mouvement. |
+| `render.motion.sway.look.roll-gain` | `-0.1` | un nombre fini dans [-1000, 1000] | rechargement | Gain de roll signé pour cette couche de mouvement. |
+| `render.motion.sway.movement.lerp-speed` | `6.0` | un nombre fini dans [0, 1000] | rechargement | Réponse de lissage du déplacement. |
+| `render.motion.sway.movement.yaw-gain` | `0` | un nombre fini dans [-1000, 1000] | rechargement | Gain de rotation (yaw) signé pour cette couche de mouvement. |
+| `render.motion.sway.movement.pitch-gain` | `0` | un nombre fini dans [-1000, 1000] | rechargement | Gain de rotation (pitch) signé pour cette couche de mouvement. |
+| `render.motion.sway.movement.roll-gain` | `-5` | un nombre fini dans [-1000, 1000] | rechargement | Gain de rotation (roll) signé pour cette couche de mouvement. |
+| `render.motion.bob.enabled` | `false` | `true` ou `false` | rechargement | Activer le balancement de marche. |
+| `render.motion.bob.cycles-per-block` | `1` | un nombre fini dans [0, 1000] | rechargement | Nombre de cycles de balancement de marche par bloc parcouru. |
+| `render.motion.bob.horizontal-amplitude` | `0.025` | un nombre fini dans [0, 1000] | rechargement | Amplitude du balancement horizontal. |
+| `render.motion.bob.vertical-amplitude` | `0.03` | un nombre fini dans [0, 1000] | rechargement | Amplitude du bobbing vertical. |
+| `render.motion.bob.roll-amplitude` | `0.8` | un nombre fini dans [0, 1000] | rechargement | Amplitude du bobbing de roulis en degrés. |
+| `render.motion.bob.frequency` | `9.0` | un nombre fini dans [0, 100] | rechargement | Fréquence de réponse du ressort. Des valeurs plus élevées se stabilisent plus rapidement. |
+| `render.motion.bob.damping` | `0.9` | un nombre fini dans [0, 10] | rechargement | Amortissement du ressort. Une valeur proche de 1 évite le dépassement. Sous 1, le ressort peut rebondir. |
+| `render.motion.camera-follow.enabled` | `false` | `true` ou `false` | rechargement | Activer le déplacement de suivi de caméra basé sur le ressort. |
+| `render.motion.camera-follow.frequency` | `20.0` | un nombre fini dans [0, 100] | rechargement | Fréquence de réponse du ressort. Des valeurs plus élevées se stabilisent plus rapidement. |
+| `render.motion.camera-follow.damping` | `0.1` | un nombre fini dans [0, 10] | rechargement | Amortissement du ressort. Une valeur proche de 1 évite le dépassement. Sous 1, le ressort peut rebondir. |
+| `render.motion.camera-follow.yaw-position-gain` | `0` | un nombre fini dans [-1000, 1000] | rechargement | Gain de position de la rotation pour cette couche de mouvement. |
+| `render.motion.camera-follow.pitch-position-gain` | `0` | un nombre fini dans [-1000, 1000] | rechargement | Gain de position de la hauteur pour cette couche de mouvement. |
+| `render.motion.camera-follow.maximum-offset` | `0.15` | un nombre fini dans [0, 100] | rechargement | Décalage maximal de suivi de la caméra en position. |
+| `render.motion.camera-follow.pitch-compensation` | `0.3` | un nombre fini dans [0, 100] | rechargement | Compenser le déplacement pour la hauteur de la vue. |
+| `render.motion.physics.enabled` | `true` | `true` ou `false` | rechargement | Activer la physique native pour les os marqués. Aucune simulation dans BetterModel. |
+| `render.motion.physics.acceleration-gain` | `4.0` | un nombre fini dans [-1000, 1000] | rechargement | Gain de signe convertissant l’accélération du joueur en inclinaison de l’os. |
+| `render.motion.physics.maximum-angle` | `25` | un nombre fini dans [0, 180] | rechargement | Limiter la rotation physique native en degrés. |
+| `render.motion.physics.frequency` | `4.0` | un nombre fini dans [0, 100] | rechargement | Réponse du ressort de balancement. La fréquence détermine la vitesse à laquelle l’os rejoint sa cible. L’amortissement limite le dépassement, avec 1,0 pour le supprimer. Sous 1,0, l’os dépasse sa position de repos puis rebondit, ce qui peut se traduire par un à-coup à l’arrêt du joueur. À une fréquence de 4,0 et un amortissement de 0,6, un retour de 25 degrés dépasse la cible d’environ 2,1 degrés. Rapprochez l’amortissement de 1,0 pour retirer le rebond ou baissez la fréquence pour ralentir le retour. |
+| `render.motion.physics.damping` | `0.6` | un nombre fini dans [0, 10] | rechargement | Amortissement du ressort. Une valeur proche de 1 évite le dépassement. Sous 1, le ressort peut rebondir. |
+| `render.motion.physics.turn-gain` | `0.25` | un nombre fini dans [0, 1000] | rechargement | Inclinaison ajoutée par degré/second de rotation de la caméra. Gardez-le petit : la balancement de la souris en regardant vers le haut ou vers le bas ne doit pas projeter l’os de côté. |
 
-| Clé                                             | Type    | Signification                                                                                                                                                     |
-| ----------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `enabled`                                       | booléen | Interrupteur global du rendu Armature. `false` retire la présentation Armature tout en laissant les plugins fournisseur/gameplay actifs.                          |
-| `first-person-only`                             | booléen | `true` masque le modèle à la troisième personne.                                                                                                                  |
-| `model-adaptation`                              | booléen | Adapte le modèle pour contourner les limitations en jeu. Ne modifie pas votre modèle.                                                                             |
-| `vanilla-item-model`                            | option  | `source-model` modifie le vrai modèle d’item pour masquer la main ; `mask` affiche un faux item au joueur pour masquer sa main. `mask` offre plus de flexibilité. |
-| `empty-hand-mask.repair-server-materialization` | booléen | Gardez cette option activée avec `mask` pour éviter les glitches d’inventaire.                                                                                    |
+## options du pack de ressources
 
-## Mouvement
+| Option | Valeur par défaut | Valeurs acceptées | Prise en compte | Utilité |
+| --- | --- | --- | --- | --- |
+| `resource-pack.renderer-pack.enabled` | `false` | `true` ou `false` | redémarrage | Séparez les actifs du moteur de rendu natif hébergés de manière externe du pack commun. Un redémarrage est requis. |
+| `resource-pack.renderer-pack.url` | `""` | une URL ZIP HTTP(S) externe | redémarrage | Hébergez ici les plugins/Armature/renderer_pack.zip. {sha1} peut versionner l’URL. |
+| `resource-pack.renderer-pack.prompt` | `"Armature server rendering"` | une demande de pack de ressources | redémarrage | Demande de pack de ressources pour le pack de rendu serveur séparé. |
+| `resource-pack.generate-zip` | `false` | `true` ou `false` | reconstruction du pack | Génère un ZIP autonome en plus de la sortie du répertoire. |
+| `resource-pack.generation.on-startup` | `true` | `true` ou `false` | rechargement | Généré automatiquement pour cet événement de cycle de vie. La reconstruction explicite du pack reste disponible. |
+| `resource-pack.generation.on-reload` | `true` | `true` ou `false` | rechargement | Générer automatiquement pour cet événement de cycle de vie. La reconstruction explicite du pack reste disponible. |
+| `resource-pack.generation.on-provider-change` | `true` | `true` ou `false` | rechargement | Générer automatiquement pour cet événement de cycle de vie. La reconstruction explicite du pack reste disponible. |
+| `resource-pack.description` | `""` | une description, optionnellement vide | reconstruction du pack | Un vide conserve la description du backend. Ne renomme pas le pack final d’un fournisseur. |
+| `resource-pack.supported-version.min` | `"1.21.4"` | une version de client intégrée, `server` ou `latest` | reconstruction du pack | La couche additive la plus basse conservée. Cela ne convertit pas les modèles sources. |
+| `resource-pack.supported-version.max` | `latest` | une version de client intégrée, `server` ou `latest` | reconstruction du pack | La couche additive la plus haute conservée. La dernière sélectionne la dernière définition empaquetée. |
+| `resource-pack.validation.enable` | `true` | `true` ou `false` | reconstruction du pack | Valider le pack candidat généré. |
+| `resource-pack.validation.fail-on-error` | `false` | `true` ou `false` | reconstruction du pack | Rejeter les candidats en cas d’erreur de validation si activé. |
+| `resource-pack.validation.check-models` | `true` | `true` ou `false` | reconstruction du pack | Vérifier les références de modèle générées. |
+| `resource-pack.validation.check-textures` | `true` | `true` ou `false` | reconstruction du pack | Vérifier les références de texture générées. |
+| `resource-pack.validation.check-atlases` | `true` | `true` ou `false` | reconstruction du pack | Vérifier les références d’atlas et les actifs. |
+| `resource-pack.optimization.json.enable` | `false` | `true` ou `false` | reconstruction du pack | Optimiser les JSON générés éligibles. Les chemins exclus sont conservés. |
+| `resource-pack.optimization.json.exclude` | `[]` | motifs glob relatifs au pack | reconstruction du pack | Exclusions de motifs glob relatifs au pack pour cette optimisation uniquement. |
+| `resource-pack.optimization.texture.enable` | `false` | `true` ou `false` | reconstruction du pack | Optimiser les textures PNG générées éligibles. Les chemins exclus sont conservés. |
+| `resource-pack.optimization.texture.compression-level` | `9` | un entier de 0 à 9 inclus | reconstruction du pack | niveau de compression PNG (0-9). Ne modifie pas le gameplay. |
+| `resource-pack.optimization.texture.exclude` | `[]` | motifs glob relatifs au pack | reconstruction du pack | Exclusions de motifs glob relatifs au pack pour cette optimisation uniquement. |
+| `resource-pack.zip.path` | `resource_pack.zip` | un chemin ZIP relatif à l’intérieur d’Armature | reconstruction du pack | Chemin de sortie ZIP autonome relatif situé sous plugins/Armature. |
+| `resource-pack.zip.method` | `deflated` | `stored` ou `deflated` | reconstruction du pack | Choisir les entrées non compressées (stockées) ou le déflatement ZIP (déflaté). |
+| `resource-pack.zip.compression-level` | `6` | un entier de 0 à 9 inclus | reconstruction du pack | niveau de compression déflatement ZIP (0-9). |
+| `resource-pack.collision-policy` | `keep-existing` | `keep-existing`, `replace` ou `error` | reconstruction du pack | Propriété déterministe lorsque deux sources publient un chemin normalisé. keep-existing conserve le premier propriétaire externe. Replace permet à Armature de gagner lorsque sa source générée est impliquée. Error annule le candidat. |
+| `resource-pack.collision-rules` | `[]` | Règles de collision étendues | reconstruction du pack | Règles de premier match facultables : [{source: provider, namespace: ns, path: ns:foo/**, policy: replace}] |
+| `resource-pack.exclusions.sources` | `[]` | Liste des identifiants de propriétaire de source en minuscules | reconstruction du pack | Les identifiants de propriétaire de source sont normalisés en minuscules et correspondent exactement. |
+| `resource-pack.exclusions.namespaces` | `[]` | Liste des identifiants d’espace de noms | reconstruction du pack | Les identifiants d’espace de noms sont normalisés en minuscules et correspondent à assets/<namespace>/**. |
+| `resource-pack.exclusions.paths` | `[]` | motifs glob relatifs à la racine du pack. `*` correspond à un segment et `**` à plusieurs segments | reconstruction du pack | Les chemins utilisent des barides obliques avant ; * reste dans un seul segment, ** traverse les segments. |
 
-`render.motion.*`
 
-Tous les gains sont des multiplicateurs visuels. Les rotations sont en degrés ; les offsets sont des distances dans l’espace du modèle. Les couches de mouvement se composent sur la transformation courante du modèle.
+## Fichiers connexes
 
-### Balancement
+`variables.yml` déclare des variables de profil partagées ; `messages.yml` contrôle les messages administrateurs (`auto`, `en`, `fr`). Les fichiers de profil, les modèles et les textures d’armure personnalisées ont leurs propres répertoires. Cette configuration ne contient pas de règles d’animation de profil.
 
-`render.motion.sway.*`
-
-| Clé                   | Signification                                                                                                                                  |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `enabled`             | Active le balancement lié à la caméra et au déplacement.                                                                                       |
-| `maximum-rotation`    | Limite absolue de la rotation combinée. Empêche les angles extrêmes lorsque plusieurs gains s’additionnent.                                    |
-| `look.lerp-speed`     | Lissage du balancement lié à la caméra. `0` applique directement les deltas caméra ; les valeurs supérieures suivent progressivement la cible. |
-| `look.yaw-gain`       | Convertit le lacet de la vue en lacet du modèle.                                                                                               |
-| `look.pitch-gain`     | Convertit le tangage de la vue en tangage du modèle.                                                                                           |
-| `look.roll-gain`      | Convertit le mouvement de la vue en roulis du modèle.                                                                                          |
-| `movement.lerp-speed` | Lissage du balancement lié au déplacement. Les valeurs supérieures se stabilisent plus vite.                                                   |
-| `movement.yaw-gain`   | Convertit la direction de déplacement en lacet.                                                                                                |
-| `movement.pitch-gain` | Convertit le déplacement en tangage.                                                                                                           |
-| `movement.roll-gain`  | Convertit le déplacement en roulis.                                                                                                            |
-
-### Balancement de marche
-
-`render.motion.bob.*`
-
-| Clé                    | Signification                                                                                          |
-| ---------------------- | ------------------------------------------------------------------------------------------------------ |
-| `enabled`              | Active le balancement de pas pendant le déplacement.                                                   |
-| `cycles-per-block`     | Oscillations par bloc parcouru. Des valeurs supérieures produisent des pas plus rapprochés et rapides. |
-| `horizontal-amplitude` | Distance du balancement latéral.                                                                       |
-| `vertical-amplitude`   | Distance du balancement vertical.                                                                      |
-| `roll-amplitude`       | Angle de roulis appliqué par le cycle.                                                                 |
-| `frequency`            | Réactivité du ressort. Des valeurs supérieures réagissent plus vite.                                   |
-| `damping`              | Perte d’énergie du ressort. Des valeurs supérieures réduisent le dépassement.                          |
-
-### Suivi de caméra
-
-`render.motion.camera-follow.*`
-
-Le suivi de caméra est une inertie positionnelle, pas une orientation vers la caméra. L’orientation billboard reste responsable de faire face au joueur.
-
-| Clé                   | Signification                                                         |
-| --------------------- | --------------------------------------------------------------------- |
-| `enabled`             | Active le suivi positionnel de caméra.                                |
-| `frequency`           | Vitesse de réponse du ressort positionnel.                            |
-| `damping`             | Stabilise le ressort et limite le dépassement.                        |
-| `yaw-position-gain`   | Translation locale générée par le lacet de caméra.                    |
-| `pitch-position-gain` | Translation locale générée par le tangage de caméra.                  |
-| `maximum-offset`      | Translation maximale du suivi caméra.                                 |
-| `pitch-compensation`  | Compense le placement vertical lors du regard vers le haut ou le bas. |
-
-## Correspondances d’armures personnalisées
-
-`armor-mappings.*`
-
-Armature prend automatiquement en charge les armures de joueur vanilla, mais une étape est nécessaire pour les armures personnalisées ajoutées par un plugin. Consultez [Armures personnalisées](../avance/armures-personnalisees.md).
-
-## Recettes de réglage
-
-**Vue compétitive stable :** définissez `sway.maximum-rotation` à `2.0~3.0`, réduisez le roulis du déplacement et gardez le damping du suivi caméra près de `0.9`.
-
-**Vue cinématique :** augmentez progressivement les gains de vue et de déplacement, augmentez les amplitudes de balancement, puis les limites seulement si le clipping reste acceptable.
-
-**Diagnostiquer les saccades :** activez `debug.enabled`, `debug.tracker-lifecycle` et `debug.animations` ; testez avec un joueur ; désactivez ensuite ces options. Le réglage du mouvement ne répare pas un tracker qui n’est plus planifié.
+Continuer avec [Rendu et caméra](../configuration/rendering-camera.md), [Mouvement et physique](../avance/meilleurs-reglages.md), [Packs de ressources](../configuration/resource-packs.md), [Peaux et armure](../avance/armures-personnalisees.md), ou l'[éditeur dans le jeu](in-game-editor.md).

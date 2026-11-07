@@ -1,105 +1,78 @@
-# 📰 Profils
+---
+description: "Structure des profils"
+---
 
-Les profils se trouvent dans `plugins/Armature/profiles/*.yml`. Chaque entrée racine est un profil d’item indépendant.
+# 🗂️ Structure des profils
+
+Les profils sont des fichiers YAML situés ci-dessous `plugins/Armature/profiles/**/*.yml`. Chaque clé racine est un identifiant de profil globalement unique. Les noms de fichiers ou de dossiers ne limitent pas la portée des références. Les fichiers modernes et legacy peuvent coexister, mais utilisez le format moderne pour les nouveaux profils.
+
+## Profil minimal d’objet
 
 ```yaml
-# Profil utilisé uniquement lorsque la main principale est vide.
-empty_hands:
-  item: minecraft:air
-  model: empty_hands
-  hide-vanilla-hand: true
-  sway-rate: 1.0
-  #render-events: [climb, sprint, swing]
+wiki_stick:
+  match:
+    item: minecraft:stick
+  model:
+    name: wiki_player
+```
 
+Le modèle `wiki_player` doit exister. Un profil statique peut omettre les animations. L’ajout de règles sélectionne des clips créés plutôt que de définir de nouvelles géométries de modèle.
+
+## Forme complète
+
+```yaml
+wiki_rifle:
+  match:
+    item: weaponmechanics:m4a1
+    when: variable.rifle-enabled == true
+  model:
+    name: arm_rifle
+    offset: 0.0
+    sway-rate: 1.0
+    hide-vanilla-hand: true
   animations:
-    idle: base
-    sprint: 
-      start: sprint_start
-      loop: sprint
-    swing: 
-      name: swing
-      cooldown: 6
-    mine: swing
-    climb:
-      loop: climb_up
-      paused: climb_hold
-      down: climb_down
-    equip: equip
-    unequip: unequip
-    crouch: 
-      #start: sneak_start
-      loop: sneak
+    movement:
+      - animation: base
+    actions:
+      - trigger: weaponmechanics:fire
+        animation:
+          name: fire
+          cooldown: 3t
+    additives:
+      - when: player.falling == true
+        animation: fall
+        playback: loop
+        weight: 0.5
 ```
 
-## Champs du profil
+Déclarez `rifle-enabled` dans [variables.yml](variables.md), et fournissez tous les clips de modèle utilisés ci-dessus. Les noms de ressources de remplacement ne sont pas des capacités intégrées.
 
-| Champ               | Requis | Signification                                                                                                                                  |
-| ------------------- | -----: | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `<profile-id>`      |    oui | Clé YAML racine. Utilisez des lettres minuscules, chiffres, `.`, `_` ou `-`.                                                                   |
-| `item`              |    oui | Identité d’item résolue, telle que `minecraft:diamond_sword` ou `weaponmechanics:m4a1`. `minecraft:air` est utilisée pour le profil main vide. |
-| `model`             |    oui | ID du modèle BetterModel.                                                                                                                      |
-| `model-offset`      |    non | Décalage vertical dans l’espace du modèle. Par défaut `0.0`.                                                                                   |
-| `sway-rate`         |    non | Multiplicateur par profil du balancement visuel. Par défaut `1.0` ; `0` désactive sa contribution.                                             |
-| `hide-vanilla-hand` |    non | Masque la main vanilla en vue à la première personne. Par défaut `true`.                                                                       |
-| `animations`        |    non | Association entre noms d’actions Armature et définitions d’animations BetterModel.                                                             |
+## Champs et présentation
 
-## Animations
+| Champ | Obligatoire | Signification |
+| --- | --- | --- |
+| `<profile-id>` | oui | ID racine : lettres minuscules, chiffres, `.`, `_` ou `-`. |
+| `match` | oui | ID d’objet exact, groupe d’objet, motif ou un matcheur structuré. |
+| `model.name` | oui | ID du modèle chargé pour le moteur de rendu natif actif. |
+| `model.offset` | non | Décalage vertical dans l’espace du modèle. Par défaut `0.0`. |
+| `model.sway-rate` | non | Multiplicateur de balancement par profil. Par défaut `1.0`. |
+| `model.hide-vanilla-hand` | non | Caché l’objet à la première personne original. Par défaut `true`. |
+| `model.render-events` | non | Liste d’autorisation d’événements de rendu optionnelle pour les sessions conditionnelles. |
+| `model.held-item` | non | État visuel de la copie de l’objet tenu : `static`, `source` ou `rules`. L’omission conserve le comportement existant. |
+| `animations.movement[].hide-vanilla-hand` | non | Remplace la valeur du modèle lorsque cette règle de mouvement est sélectionnée. |
+| `animations.actions[].hide-vanilla-hand` | non | Remplace la valeur de mouvement/modèle lorsque cette action est active. |
+| `type` | non | `item` (par défaut) ou réutilisable `attachment`. Voir [composites de profils](attachments.md). |
+| `animations` | non | Contient `movement`, `actions` et/ou `additives`. |
+| `integrations` | non | Paramètres de présentation appartenant au fournisseur. |
 
-Actions acceptées :
+`model.offset` déplace la racine du modèle dans l’espace du modèle. `sway-rate` modifie le balancement de l’aspect/mouvement sans changer le bobbing ou le suivi de la caméra.
 
-```
-equip
-unequip
+`hide-vanilla-hand` contrôle uniquement la présentation. Armature utilise le masque de client et le chemin du pack de ressources configurés. L’objet de l’inventaire du serveur n’est jamais remplacé. Une main vide peut être sélectionnée avec `match.item: minecraft:air`.
 
-idle
-walk
-sprint
-crouch
+`match.when` gère l’activation ; [variants](variants.md) choisissent une présentation conditionnelle au sein d’un profil actif, et [attachments](attachments.md) montent des instances de modèle réutilisables. Les variables YAML appartiennent exclusivement à `variables.yml`. Les présentations créées via l’API ont leur propre contrat explicite de variables en ligne.
 
-jump
-land
-fall
+## Charger en toute sécurité
 
-climb
-climb-hold
-climb-down
+Exécuter `/armature reload profiles`, inspecter les avertissements et utiliser `/armature profile inspect <player>`. Un fichier malformat n’est pas réparé par le rechargement. Les erreurs de liaison, telles que les profils d’accessoires inconnus, les cycles, les variables inconnues ou les conditions de sélection invalides, rejettent la bibliothèque candidate. La bibliothèque active reste en place. La validation des modèles/clip/mount couvre également les variantes inactives.
 
-swing
-mine
-place
-use
-
-eat
-drink
-throw
-
-block
-bow-draw
-crossbow-charge
-trident-charge
-
---- WeaponMechanics only ---
-
-fire
-aim
-aim-start
-aim-exit
-aim-fire
-
-reload-start
-reload-phase
-reload-complete
-reload-cancel
-```
-
-| Champ      | Signification                                                                        |
-| ---------- | ------------------------------------------------------------------------------------ |
-| `name`     | Nom exact de l’animation BetterModel.                                                |
-| `duration` | Durée forcée de l’action en ticks serveur.                                           |
-| `speed`    | Multiplicateur de lecture, supérieur à `0`.                                          |
-| `cooldown` | Délai minimal avant de rejouer la même animation, en ticks serveur.                  |
-| `start`    | **Pour les animations en boucle.** Joue une animation avant la boucle.               |
-| `loop`     | **Pour les animations en boucle.**                                                   |
-| `end`      | **Pour les animations en boucle.** Joue une animation à la fin de la boucle.         |
-| `paused`   | **Pour l’action d’escalade.** Animation lorsque le joueur se baisse sur une échelle. |
-| `down`     | **Pour l’action d’escalade.** Animation lors de la descente d’une échelle.           |
+Les références de nouveaux modèles nécessitent la génération et la livraison du modèle/pack, pas seulement un rechargement de profil. Voir [Exemples complets](examples.md) et [Mise à niveau](../upgrading.md).

@@ -1,33 +1,32 @@
-# 🔭 Dépannage
+---
+description: "Dépannage"
+---
 
-## Le plugin se désactive au démarrage
+# 🩺 Dépannage
 
-Vérifiez que BetterModel est installé et activé avant Armature. BetterModel est une dépendance de rendu obligatoire.
+Commencez par un profil minimaliste et un modèle connu chargé. Gardez le modèle exact, le profil, les versions serveur/client et le pack de ressources fournisseur final qui reproduisent le problème. Modifiez une seule variable à la fois.
 
-## ModelEngine provoque des problèmes
+| Symptôme | Vérifier d’abord | Étape suivante |
+| --- | --- | --- |
+| Aucune présentation | Runtime/joueur activé, identité de l’objet, profil sélectionné, modèle chargé, pack accepté | Inspection du profil, inspection du modèle, médecin |
+| Texture manquante/rose | ZIP fournisseur final exact, définitions du chemin/namespaces et du pack cible | [Packs de ressources](configuration/resource-packs.md) |
+| Animation incorrecte | Nom exact du clip sensible à la casse, condition/règle de déclencheur, action protégée et délai de recharge | [Règles d’action](premiers-pas/profils/actions.md) |
+| Mouvement incorrect | Règle de correspondance la plus spécifique, ordre de liaison des déclarations, actifs de boucle/début/fin | [Règles de mouvement](premiers-pas/profils/movement.md) |
+| Objet/bras déplacé | Affectation de rôle, pivots, clip de main miroir, surcharge d’os sauvegardée | [Rôles d’os](premiers-pas/modeles/bone-roles.md), [éditeur](premiers-pas/in-game-editor.md) |
+| Le modèle disparaît à l’intérieur des blocs | Anti-cassure et chemin exact du shader/graphismes | [Rendu et Caméra](configuration/rendering-camera.md) |
+| Rotation de la caméra absente | Rôle/élément de la caméra, rotation de la caméra activée et graphismes du client pris en charge | Rendu et Caméra |
+| Peau/armure incorrecte | Rôle classique/maigre, équipement du joueur, mappage de l’armure et chemin de texture | [Peaux et Armure personnalisée](avance/armures-personnalisees.md) |
+| Accessoire manquant | Backend natif, ID d’accessoire/os référencé, condition, profondeur/budget d’entités | [Accessoires](premiers-pas/profils/attachments.md) |
+| Le rendu du client change de manière inattendue | Préférence/état de préparation du client, solution de repli composite, rechargement du pack en attente | [Rendu du client et solution de repli](mod-client/rendering-fallback.md) |
+| `.armature` rejeté | Strict v2, sauvegarde du plugin normale, rôles dupliqués/invalides, diagnostics de l’exportateur | [Sauvegarde & Déploiement](premiers-pas/modeles/saving-deploying.md) |
 
-C’est en réalité BetterModel qui en est la cause. Ajoutez `meg:` devant toute mécanique ModelEngine dans MythicMobs.
+## Un test court et reproductible
 
-## Modèle invisible
+1. Exécutez `/armature diagnostics doctor`. Corrigez les erreurs avant d’ajuster les cosmétiques.
+2. Validez la configuration sans l’appliquer : `/armature config validate`.
+3. Inspectez l’objet tenu/profil et le modèle en utilisant les commandes dans [Diagnostics](depannage/diagnostics.md).
+4. Reconstruisez les actifs Armature/fournisseur et acceptez le pack final du fournisseur.
+5. Testez après un redémarrage complet du serveur si nécessaire. Un Bukkit `/reload` ne prouve pas un démarrage propre ou un changement de moteur de rendu/dépendance.
+6. Retestez avec le rendu client désactivé si possible. Notez quel chemin échoue.
 
-Vérifiez `render.enabled: true`, l’identité de l’item du profil et l’ID `model` BetterModel. Vérifiez que l’asset du modèle est chargé et que le joueur a appliqué le resource pack.
-
-## L’animation ne se joue pas
-
-Comparez le nom d’animation du profil avec le nom exact de l’animation BetterModel. Consultez les avertissements au démarrage et au rechargement pour les animations manquantes. Pour les actions fournies par un plugin, vérifiez que le fournisseur est activé et que son identité d’item correspond à la valeur `item` du profil.
-
-## Le mouvement est trop fort
-
-Réduisez le `*-gain`, l’amplitude ou `sway.maximum-rotation` concerné. Le suivi caméra agit sur la position ; le balancement agit sur la rotation. Réglez une couche à la fois.
-
-## Le tracker existe mais cesse de se mettre à jour
-
-Activez `debug.enabled` et `debug.tracker-lifecycle`, reproduisez avec un joueur et vérifiez si le tracker est planifié et si une transition d’action/boucle s’est terminée. Cela nécessite des preuves sur serveur en direct ; une compilation réussie ne prouve pas la santé du tracker.
-
-## La main vide affiche un item invisible ou du papier
-
-Installez [PacketEvents](https://modrinth.com/plugin/packetevents), activez `debug.enabled` et `debug.empty-hand-mask`, reproduisez une fois et inspectez le slot brut sélectionné ainsi que la mutation d’inventaire serveur. `render.empty-hand-mask.repair-server-materialization` est une réparation expérimentale étroite pour le masque Armature reconnu.
-
-## Rapport à joindre
-
-Incluez la version d’Armature, la version Minecraft/Paper, la version BetterModel, la liste des fournisseurs, le profil concerné, `config.yml`, les avertissements de démarrage/rechargement et les logs de débogage d’un joueur concerné. Masquez les noms de joueurs si nécessaire.
+Ne corrigez pas un échec de pack en modifiant un matcheur d’objet déjà correct. Ne supprimez pas une action protégée simplement pour cacher un signal de rechargement/fin perdu. Repérez la première étape incorrecte dans l’identité de l’objet → sélection → modèle → pack → rendu.
