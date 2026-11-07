@@ -1,16 +1,70 @@
-# ItemsAdder
+---
+cover: ../../.gitbook/assets/itemsadder.png
+coverY: 0
+layout:
+  width: default
+  cover:
+    visible: true
+    size: full
+    mask: none
+  title:
+    visible: true
+  description:
+    visible: true
+  tableOfContents:
+    visible: true
+  outline:
+    visible: true
+  pagination:
+    visible: true
+  metadata:
+    visible: true
+  tags:
+    visible: true
+  actions:
+    visible: true
+---
 
-Armature нативно поддерживает предметы ItemsAdder, поэтому их можно использовать в Armature для отображения анимированных рук.
+# 🧰 ItemsAdder
 
-### Конфигурация профиля
+Установите ItemsAdder рядом с Armature и создайте кастомный предмет, идентифицированный ниже, используя собственную конфигурацию этого плагина. Пример Armature использует встроенную модель `arm_sword`. Он не создает кастомный игровой предмет.
 
-{% code title="Armature/profiles/itemsadder_test_item.yml" %}
+## Завершить профиль
+
+```yaml
+wiki_itemsadder:
+  match:
+    item: itemsadder:my_pack:wiki_sword
+  model:
+    name: arm_sword
+    hide-vanilla-hand: true
+  animations:
+    movement:
+      - animation: base
+    actions:
+      - trigger: player:attack
+        animation:
+          name: swing
+          duration: 8t
 ```
-ia_test_item:
-  item: <namespace>:<item_id>
-  model: <your_arms_model>
-  hide-vanilla-hand: true
-```
-{% endcode %}
 
-Пользовательские текстуры и модели предметов поддерживаются свойством `hide-vanilla-hand` в Armature.
+Сохраните под `plugins/Armature/profiles/`, перезагрузите профили, получите этот точный предмет-провайдер и проверьте соответствующий профиль. Отведите его: ожидаемый клип анимации — `swing`. Проверьте обе руки, если предмет можно держать в любой из них.
+
+## Работа с пакетами ресурсов
+
+
+Пространство имен и идентификатор предмета ItemsAdder образуют селектор. Видимое имя предмета не является его идентичностью. Armature автоматически обнаруживает установленный провайдер и размещает его сгенерированные активы для рабочего процесса генерации ItemsAdder. ItemsAdder остается ответственным за генерацию, хостинг и отправку своего финального ZIP. Запустите `/iazip` и используйте обычный рабочий процесс обновления/отправки пакета ItemsAdder после размещения изменений.
+
+
+После изменения моделей Armature или активов рендерера:
+
+```text
+/armature reload pack
+/iazip
+```
+
+Синтаксис команды провайдера может отличаться в зависимости от версии установленного провайдера. Используйте его собственную помощь для аргументов. Выберите правильную цель пакета Minecraft и примите/скачайте финальный пакет провайдера. Если в результате отсутствуют текстуры, проверьте финальный ZIP перед повторной попыткой сопоставления предметов.
+
+Провайдер идентифицирует предметы. Общие возможности Armature для экипировки/снятия и стандартные события остаются доступными. Не предполагайте, что он предоставляет события типа огня или перезарядки в стиле WeaponMechanics. Эмитируйте кастомные игровые сигналы через публичный API при необходимости.
+
+См. [Пакеты ресурсов](../../configuration/resource-packs.md) для столкновений, фильтров, раздельной доставки и отчетов о генерации.

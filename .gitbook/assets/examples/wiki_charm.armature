@@ -1,0 +1,134 @@
+{
+  "meta": {
+    "format_version": "5.0",
+    "model_format": "armature_fpv",
+    "box_uv": false
+  },
+  "armature": {
+    "format_version": 2,
+    "renderer": "native"
+  },
+  "name": "wiki_charm",
+  "model_identifier": "wiki_charm",
+  "resolution": {
+    "width": 16,
+    "height": 16
+  },
+  "groups": [
+    {
+      "uuid": "f38ef2cc-e9d7-4da6-bc71-ab797cd10455",
+      "name": "pendant",
+      "origin": [
+        0,
+        4,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "armature_role": "none",
+      "armature_physics": true
+    }
+  ],
+  "elements": [
+    {
+      "uuid": "02f95eba-c775-48ca-9cbc-ef61ecec67c3",
+      "name": "gold_charm",
+      "type": "cube",
+      "from": [
+        -1,
+        0,
+        -1
+      ],
+      "to": [
+        1,
+        2,
+        1
+      ],
+      "origin": [
+        0,
+        4,
+        0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        }
+      }
+    }
+  ],
+  "outliner": [
+    {
+      "uuid": "f38ef2cc-e9d7-4da6-bc71-ab797cd10455",
+      "children": [
+        "02f95eba-c775-48ca-9cbc-ef61ecec67c3"
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "id": "0",
+      "uuid": "41b56f40-5afd-42f3-bcf5-3d44319ad9f7",
+      "name": "wiki_gold.png",
+      "width": 16,
+      "height": 16,
+      "uv_width": 16,
+      "uv_height": 16,
+      "source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAO0lEQVR4nGO8vdbrPwMSUDKwR+Yy3LtwkAGfPBMDhYBpwA1gIdXP6PJMlLqAacANYCHVz6PpgGE4pgMAYJYYiB1F5G0AAAAASUVORK5CYII="
+    }
+  ],
+  "animations": []
+}

@@ -1,0 +1,20 @@
+root: ./
+structure:
+  readme: ./README.md
+  summary: ./SUMMARY.md
+redirects:
+  introduction: README.md
+  nachalo-raboty: nachalo-raboty/installation.md
+  nachalo-raboty/konfiguraciya: nachalo-raboty/konfiguraciya.md
+  nachalo-raboty/model-blockbench: nachalo-raboty/model-blockbench.md
+  nachalo-raboty/profili: nachalo-raboty/profili/README.md
+  nachalo-raboty/profili/gruppirovka-predmetov: nachalo-raboty/profili/gruppirovka-predmetov.md
+  rasshirennye-vozmozhnosti: rasshirennye-vozmozhnosti/podderzhivaemye-plaginy/README.md
+  rasshirennye-vozmozhnosti/polzovatelskaya-bronya: rasshirennye-vozmozhnosti/polzovatelskaya-bronya.md
+  rasshirennye-vozmozhnosti/luchshie-nastroiki: rasshirennye-vozmozhnosti/luchshie-nastroiki.md
+  rasshirennye-vozmozhnosti/podderzhivaemye-plaginy: rasshirennye-vozmozhnosti/podderzhivaemye-plaginy/README.md
+  rasshirennye-vozmozhnosti/podderzhivaemye-plaginy/itemsadder: rasshirennye-vozmozhnosti/podderzhivaemye-plaginy/itemsadder.md
+  rasshirennye-vozmozhnosti/podderzhivaemye-plaginy/nexo: rasshirennye-vozmozhnosti/podderzhivaemye-plaginy/nexo.md
+  rasshirennye-vozmozhnosti/podderzhivaemye-plaginy/craftengine: rasshirennye-vozmozhnosti/podderzhivaemye-plaginy/craftengine.md
+  rasshirennye-vozmozhnosti/podderzhivaemye-plaginy/weaponmechanics: rasshirennye-vozmozhnosti/podderzhivaemye-plaginy/weaponmechanics.md
+  ustranenie-nepoladok: ustranenie-nepoladok.md

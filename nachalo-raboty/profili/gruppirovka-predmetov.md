@@ -1,139 +1,66 @@
-# 🛍️ Группировка предметов
+---
+description: "Выбор и группировка предметов"
+---
 
-Профиль может сопоставить несколько предметов одной модели и одному набору анимаций. Armature разрешает selectors при загрузке профилей, после чего каждый найденный предмет указывает на один профиль.
+# 🧲 Выбор и группировка предметов
 
-## Когда использовать группировку
-
-Используйте её, если несколько предметов имеют:
-
-* одну модель BetterModel;
-* один набор анимаций.
-
-Пример: назначить всем vanilla-мечам один rig `fp_sword`.
-
-## Поле `items`
+Точный селектор компактен:
 
 ```yaml
-swords:
+match:
+  item: minecraft:diamond_sword
+```
+
+Поддерживаются группы и паттерны:
+
+```yaml
+match:
   items:
-    - family: swords
-  model: fp_sword
-  animations:
-    idle: sword_idle
-    swing:
-      name: sword_swing
-      duration-ticks: 8
+    - family: blocks
+    - "*_LEAVES"
+    - minecraft:glass
 ```
 
-Список `items` принимает точные ID, item families и patterns. Каждый найденный предмет получает профиль `swords`.
-
-Selectors можно смешивать:
+Эквивалентные клавиши — `families` и `patterns`. Структурированное сопоставление не требует провайдера:
 
 ```yaml
-combat_tools:
-  items:
-    - minecraft:diamond_sword
-    - minecraft:netherite_sword
-    - family: axes
-    - pattern: "*_HOE"
-  model: fp_combat
-  animations:
-    idle: combat_idle
-    swing: combat_swing
+match:
+  item:
+    material: minecraft:paper
+    data:
+      custom-model-data: 12001
+      item-model: "myplugin:rifle"
+      pdc:
+        "myplugin:variant": rifle
+      tags:
+        CustomTag: value
 ```
 
-## Типы selectors
-
-### Точный предмет
-
-Используйте формат `namespace:item`:
+Селекторы могут исключать точные предметы, семейства или паттерны:
 
 ```yaml
-items:
-  - minecraft:diamond_sword
-  - weaponmechanics:m4a1
-```
-
-Пользовательские identity доступны, если их предоставляет провайдер. Wildcard patterns пока поддерживаются только для vanilla-предметов.
-
-### Vanilla families
-
-Доступны семейства vanilla-материалов, классифицированные Armature:
-
-```yaml
-items:
-  - family: swords
-  - family: pickaxes
-  - family: tools
-```
-
-Доступные families: `blocks`, `generic`, `tools`, `swords`, `pickaxes`, `axes`, `shovels`, `hoes`, `bows`, `crossbows`, `food`, `potions`, `projectiles` и `throwables`.
-
-Принимаются plural-имена. `tools` включает pickaxes, axes, shovels и hoes.
-
-Короткая форма также допустима:
-
-```yaml
-items:
-  - swords
-  - tools
-```
-
-### Vanilla patterns
-
-Patterns используют `\*` для любого количества символов и `?` для одного символа:
-
-```yaml
-items:
-  - pattern: "*_SWORD"
-  - pattern: "minecraft:*_LEAVES"
-```
-
-Pattern без namespace нацелен на Minecraft. Wildcard families и patterns пока ограничены vanilla-предметами.
-
-## Сокращения на уровне профиля
-
-Вместо selectors в `items` используйте `families` и `patterns`:
-
-```yaml
-vanilla_weapons:
+match:
   families:
     - swords
-    - bows
-  patterns:
-    - "*_CROSSBOW"
-  model: fp_weapon
-  animations:
-    idle: weapon_idle
-    swing: weapon_swing
+  exclude:
+    items:
+      - minecraft:diamond_sword
+    families:
+      - shield
+    patterns:
+      - "*_AXE"
 ```
 
-`item`, `items`, `families` и `patterns` объединяются. Дубликаты selectors внутри одного профиля удаляются.
+`exclude.items` принимает точные ID предметов, `family:` селекторы и `pattern:` селекторы. Все исключения применяются после включения, и исключение имеет приоритет. Структурированное `item` сопоставление может использовать только исключения материалов Minecraft и не может комбинироваться с включением `items`, `families` или `patterns`. Дублирующиеся совпадения предметов и дублирующиеся ID профилей делают содержащий файл невалидным. Запуск и перезагрузка предупреждают и пропускают невалидные файлы. Валидные файлы остаются активными. Перезагрузка никогда не отключает плагин из-за одного невалидного файла профиля.
 
-## Важные правила
+## Активация и разрешения
 
-* Каждый предмет может соответствовать только одному загруженному профилю.
-* Если два профиля нацелены на один предмет, reload отклоняется с ошибкой duplicate-match.
-* Профилю нужны хотя бы один selector, `model` и секция `animations`.
-* Применяйте изменения через `/armature reload`.
-* При ошибке validation предыдущий активный набор профилей остаётся в работе.
-* Families и patterns разворачиваются по vanilla-материалам, доступным при загрузке профилей.
+`match.when` может блокировать, в противном случае совпадающий профиль, используя внешнее состояние или общие переменные. Используйте `player.has-permission:<node>` или блок `permissions` с `any`, `all`, `none`. Условия выбора не могут зависеть от собственных результатов анимации/варианта/аксессуара этого выбора.
 
-## Полный пример
+Доступ к профилю можно отключить для выбранных игроков без изменения файла профиля. Предоставьте `armature.disabled` для отключения всех представлений Armature для игрока, или предоставьте `armature.disabled.<profile-id>` для отключения только одного профиля. Для вышеуказанного профиля целевое разрешение — `armature.disabled.m4a1`.
 
-```yaml
-vanilla_swords:
-  items:
-    - family: swords
-    - pattern: "*_SWORD"
-  model: fp_sword
-  sway-rate: 0.9
-  animations:
-    idle: sword_idle
-    walk: sword_walk
-    swing:
-      name: sword_swing
-      duration-ticks: 8
-```
+Суффикс — это нижний регистр ключа корня профиля в YAML. Права доступа по умолчанию равны false и предназначены как узлы оп-аута, управляемые LuckPerms или другим плагином прав. Удаление узла позволяет профилю возобновить работу на следующем тике игрока. Игровой процесс и предмет в руке никогда не изменяются. В качестве альтернативы постоянному командному выполнению используйте `/armature profile disable <player> <profile>` и `/armature profile enable <player> <profile>`.
 
-Начинайте с точных item IDs при тестировании модели, затем расширяйте до family или pattern после проверки визуального представления. После каждого изменения проверяйте reload logs и тестируйте по одному representative item из каждой группы.
+## Проверьте выбранный идентификатор
+
+Пространства имен провайдеров идентифицируют реальные кастомные предметы: `itemsadder:...`, `nexo:...`, `craftengine:...`, `weaponmechanics:...`. Переведенное имя отображения не является идентификатором. Используйте `/armature profile inspect <player>` с фактическим предметом в руке, затем протестируйте вторую руку. Избегайте наложения точных совпадений в примерах. Ссылки на состав модели используют идентификаторы профиля и не используют содержащуюся папку как пространство имен.

@@ -1,0 +1,10 @@
+wiki_bow:
+  match: {item: minecraft:bow}
+  model:
+    name: wiki_player
+    held-item: {mode: source}
+  animations:
+    movement:
+      - animation: base
+      - when: item.using == true
+        animation: aim

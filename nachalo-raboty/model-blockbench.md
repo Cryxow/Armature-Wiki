@@ -1,68 +1,108 @@
-# 🧸 Модель BlockBench
+---
+description: "Создание первой модели"
+---
 
-## Требования
+# 🧱 Создание первой модели
 
-* Установите [BlockBench](https://www.blockbench.net/)
-* Установите плагин [Cameras](https://github.com/JannisX11/blockbench-plugins/blob/master/plugins/cameras.js) в BlockBench
+Установите [расширение Armature](modeli/installing-plugin.md) и официальный
+плагин **Cameras**. В этом руководстве используются явные роли формата
+`.armature` v2. Назначьте кости роль, чтобы связать её с частью тела или
+предметом в руке.
 
-## Создание модели
+[Скачайте модель из примера](../.gitbook/assets/examples/wiki_player.armature)
+в строгом формате v2. В ней есть стандартный скелет, клипы `base`, `inspect`,
+`aim` и `block`, а также точка крепления `charm_socket`.
 
-Для создания модели рекомендуется дублировать файл `empty_hands.bbmodel`, чтобы получить правильную настройку рук.
+![Настройки проекта Armature FPV Model](../.gitbook/assets/blockbench-project-v2.png)
 
-Модель будет выглядеть так:
+## 1. Создайте проект
 
-<figure><img src="https://3676679775-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FDcWT3onsbt69LDkzkXac%2Fuploads%2FU4QWjdVh8f2EbaSU83tj%2Fimage.png?alt=media&#x26;token=bd2d2383-1585-46bf-a13d-4c41d6f55233" alt="Скриншот BlockBench с моделью рук по умолчанию."><figcaption><p>Скриншот BlockBench с моделью рук по умолчанию.</p></figcaption></figure>
+Создайте проект **Armature FPV Model**. Blockbench откроет скелет
+`default-v2` с именем и идентификатором **player**, заданными точками
+вращения тела и предметов, а также камерой предпросмотра. Сохраните копию
+как `wiki_player.armature`, чтобы сохранить исходный скелет.
 
-Armature использует встроенные [префиксы костей BetterModel](https://github.com/toxicity188/BetterModel/wiki/Create-player-animation#make-your-animation):
+## 2. Проверьте роли и иерархию
 
+Щёлкните кость правой кнопкой мыши и выберите **Armature → Assign Role**.
+Для каждой отображаемой руки сохраните роль целой руки или роли её
+сегментов. Назначьте `item_right` и `item_left` костям, к которым
+крепятся соответствующие предметы. В сцене допускается одна роль `camera`.
+Переименовывайте кости по своему усмотрению. Назначенные роли сохранятся.
+
+Добавляйте собственную геометрию оружия и тела обычными кубами. Модель
+тела в окне предпросмотра создаётся автоматически. Дополнительные кубы
+для скина при экспорте не нужны. Подробнее о конечностях, суставах и
+генерации скина см. [роли костей](modeli/bone-roles.md).
+
+![Стандартный скелет рук и иерархия костей](../.gitbook/assets/blockbench-rig-v2.png)
+
+## 3. Проверьте предмет в руке
+
+Откройте **Armature → Preview → Preview Items…** и выберите предмет для
+основной или второй руки. Чтобы загрузить пакет ресурсов в ZIP, используйте
+**Preview Assets**. Эти модели видны в редакторе. Идентификаторы предметов
+для игры задаются отдельно в профиле.
+
+## 4. Создайте короткую анимацию
+
+Перейдите в режим **Animate** и создайте клип `inspect`. Добавьте ключевые
+кадры вращения руки в моменты 0 и 0,5 секунды, а в момент 1 секунды верните
+её в исходную позу. Оставьте нулевое вращение камеры в исходной позе.
+Начните с небольших поворотов костей, чтобы проверить точки вращения и
+выравнивание.
+
+Для собственной позы ожидания создайте цикл `base`. Если правила движения
+отсутствуют, используется исходная поза модели. Чтобы воспроизвести клип,
+привяжите его к правилу профиля.
+
+Для левой руки подготовьте соответствующие кости и клипы. Формат
+`.armature` v2 не создаёт зеркальную анимацию автоматически. Интерполяция
+и Molang описаны в [руководстве по анимациям](modeli/animations-molang.md).
+
+## 5. Сохраните модель и проверьте её в игре
+
+Сохраните проект через **File → Save / Save As** или обычным сочетанием
+клавиш. Откройте файл заново и проверьте роли, свойства **Physics**,
+геометрию и клипы. Скопируйте файл в
+`plugins/Armature/models/wiki_player.armature` и сохраните этот профиль.
+
+```yaml
+wiki_player:
+  match:
+    item: minecraft:stick
+  model:
+    name: wiki_player
+    hide-vanilla-hand: true
+  animations:
+    actions:
+      - trigger: player:attack
+        animation: inspect
 ```
-head (ph)
-right arm (pra)
-right forearm (prfa)
-left arm (pla)
-left forearm (plfa)
-hip (phip)
-waist (pw)
-chest (pc)
-right leg (prl)
-right foreleg (prfl)
-left leg (pll)
-left foreleg (plfl)
-left item (pli)
-right item (pri)
-cape (cape)
-```
 
-## Добавление предмета
+Выполните `/armature reload all`, пересоберите и передайте игрокам итоговый
+пакет ресурсов. Возьмите палку в режиме от первого лица. При атаке должен
+воспроизводиться `inspect`. Убедитесь, что палка не подходит под другой
+активный профиль. Для этой модели BetterModel и клиентский мод не требуются.
 
-По умолчанию модель автоматически отображает предметы в руках через `pli_left_item` и `pri_right_item`. Эти bones можно удалить и добавить предмет вручную.
+## Импорт из TACZ и Punchy
 
-Ручное добавление полезно для оружия: модель `fp_rifle.bbmodel` даёт полный контроль.
+На стартовом экране Blockbench Desktop откройте категорию **Armature**.
+Используйте сборку расширения Armature, в которой доступны команды импорта.
 
-## Анимация модели
+- **TACZ to Armature** импортирует оружие из JAR-файла мода TACZ или
+  ZIP-архива с пакетом оружия. Если пакет зависит от мода, выберите оба
+  файла одновременно. При совпадении файлов приоритет у ресурсов из ZIP.
+  Если Blockbench предложит выбор, укажите оружие. Проект включает
+  геометрию оружия, текстуру, руки игрока, нативную камеру и поддерживаемые
+  клипы анимации Bedrock.
+- **Punchy to Armature** импортирует дорожки анимаций от первого лица из
+  JAR-файла Punchy или ZIP-архива с пакетом ресурсов. Дорожки можно
+  редактировать в проекте игрока Armature. Правила мода, флаги временной
+  шкалы, звуки и геометрия пользовательских предметов в импорт не входят.
 
-### Настройка viewport
+Проверьте в Blockbench позы, камеру и положение предметов. Сохраните проект
+в формате `.armature` v2 и привяжите нужные клипы к профилю Armature.
 
-Рекомендуется разделить viewport через `Double Horizontal`, чтобы видеть анимацию глазами игрока.
-
-![](https://3676679775-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FDcWT3onsbt69DlAqumqZ%2Fuploads%2FQ5ACsUhcx9dU44NhmixY%2Fimage.png?alt=media\&token=39dcb3dd-ca3c-4713-8058-3bb28f1b78bd)
-
-<figure><img src="https://3676679775-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FDcWT3onsbt69DlAqumqZ%2Fuploads%2FCKt6AbrWg7Q1jK98tu6E%2Fimage.png?alt=media&#x26;token=cd06fd41-f071-4195-b93c-0ca9b212c72c" alt=""><figcaption></figcaption></figure>
-
-Маленький прямоугольник в верхней части viewport — экран игрока.
-
-### Анимации
-
-Некоторые анимации уже есть. Их можно удалить и создать свои или использовать как основу.
-
-Рекомендуется [гайд ModelEngine по анимации](https://git.lumine.io/mythiccraft/model-engine-4/-/wikis/Modeling/Animating-a-Model): он хорошо объясняет процесс и работает так же с BetterModel.
-
-#### Правила имён анимаций
-
-<mark style="color:$danger;">**⚠️ НЕ ИСПОЛЬЗУЙТЕ ЭТИ ТОЧНЫЕ ИМЕНА В АНИМАЦИЯХ ⚠️**</mark>
-
-<mark style="color:$danger;">`idle`</mark>, <mark style="color:$danger;">`walk`</mark>, <mark style="color:$danger;">`idle_fly`</mark>, <mark style="color:$danger;">`walk_fly`</mark>, <mark style="color:$danger;">`spawn`</mark>
-
-В BetterModel есть встроенная система actions, которая автоматически запускает эти имена; Armature не может это предотвратить. Возникают glitches из-за конфликта двух плагинов.
-
-Используйте другие имена или добавьте prefix/suffix: `armature_idle`, `a_idle`, `base`, `idlee` и т. д.
+Далее см. [сохранение и установку моделей](modeli/saving-deploying.md)
+и [структуру профилей](profili/README.md).

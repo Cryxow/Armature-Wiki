@@ -1,14 +1,55 @@
-# 📘 Введение
+---
+cover: .gitbook/assets/Banner Final.png
+coverY: 0
+coverHeight: 318
+---
 
-Armature — движок анимации рук от первого лица для Paper. Он отображает rig из профилей предметов, выбирает анимации по действиям vanilla или пользовательских провайдеров и добавляет опциональные эффекты камеры, движения и покачивания.
+# 👋 Введение
 
-Armature отвечает только за визуальное представление. Урон, боеприпасы, снаряды и управление инвентарём остаются ответственностью совместимого игрового плагина.
+Armature **2.0.0** — движок анимаций от первого лица для Paper и Folia.
+Он выбирает профили предметов, отображает анимированные части тела игрока
+и предметы в руках, объединяет движения, действия и аддитивные слои,
+а также генерирует ресурсы для рендеринга.
 
-## Что требуется Armature
+По умолчанию используется **нативный движок рендеринга**. Он поддерживает
+строгий формат `.armature` v2 и совместимые модели `.bbmodel` без BetterModel.
+BetterModel можно использовать как движок для совместимости. В будущих версиях
+его планируется объявить устаревшим. Явно заданный движок сохраняется.
 
-* Сервер Paper, от `1.21.4` до последней версии.
-* [BetterModel](https://modrinth.com/plugin/bettermodel), необходим для отображения rig.
-* [PacketEvents](https://modrinth.com/plugin/packetevents), необходим для скрытия vanilla-руки от первого лица и оптимизаций.
-* Необязательные провайдеры: [WeaponMechanics](https://www.spigotmc.org/resources/weaponmechanics-guns-in-minecraft.99913/), [QualityArmory](https://www.spigotmc.org/resources/quality-armory.47561/), [CraftEngine](https://modrinth.com/plugin/craftengine) или другой поддерживаемый Armature плагин предметов.
+За инвентарь, боеприпасы, урон, снаряды, логику перезарядки и время
+восстановления отвечают Minecraft и игровые плагины. Анимация с именем
+`fire` сама по себе не производит выстрел.
 
-<div align="left"><figure><img src="https://3676679775-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FDcWT3onsbt69DlAqumqZ%2Fuploads%2FZNI1ayFXay2GtZUssKg2%2FMinecraftNeoForge_1.21.11-Multiplayer3rd-partyServer2026-08-1111-59-57-ezgif.com-optimize.gif?alt=media&#x26;token=2fa24cce-17f9-462d-87f9-02b5f8690e97" alt=""><figcaption></figcaption></figure> <figure><img src="https://3676679775-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FDcWT3onsbt69DlAqumqZ%2Fuploads%2FzeD6YLMXkNT2UctS2irk%2FMinecraftNeoForge_1.21.11-Multiplayer3rd-partyServer2026-08-1111-59-37-ezgif.com-optimize.gif?alt=media&#x26;token=c3b969ec-c12c-4489-9afb-a4882e98dca8" alt=""><figcaption></figcaption></figure></div>
+{% hint style="info" %}
+Эта документация относится к Armature 2.0.0. Перед использованием примеров
+проверьте установленную версию. [Документация для 1.3.0 на английском](https://github.com/Cryxow/Armature-Wiki/tree/wiki-v1.3.0)
+доступна на GitHub.
+{% endhint %}
+
+## С чего начать
+
+- Для настройки сервера следуйте [инструкции по установке](nachalo-raboty/installation.md),
+  затем запустите [первую анимацию в игре](nachalo-raboty/first-presentation.md).
+- Для создания моделей [установите расширение Blockbench](nachalo-raboty/modeli/installing-plugin.md)
+  и следуйте [учебному руководству](nachalo-raboty/model-blockbench.md).
+- Для настройки профилей изучите [структуру профилей](nachalo-raboty/profili/README.md)
+  и [полные примеры](nachalo-raboty/profili/examples.md).
+- Для интеграции с вашим плагином используйте [публичный API](rasshirennye-vozmozhnosti/public-api.md).
+- Если Armature уже установлен, следуйте [руководству по обновлению](nachalo-raboty/upgrading.md).
+
+## Новое в версии 2.0.0
+
+| Возможность | Подробнее |
+| --- | --- |
+| Нативный рендеринг и явные роли для тела, предметов и камеры | [Роли костей](nachalo-raboty/modeli/bone-roles.md) |
+| Создание и импорт моделей в официальном расширении | [Blockbench](nachalo-raboty/model-blockbench.md) |
+| Независимый рендеринг основной и второй руки, а также правила для обеих рук | [Руки](nachalo-raboty/profili/hands.md) |
+| Типизированные глобальные переменные, условия и условные варианты | [Переменные](nachalo-raboty/profili/variables.md), [Варианты](nachalo-raboty/profili/variants.md) |
+| Переиспользуемые анимированные аксессуары и вложенные составные модели | [Аксессуары](nachalo-raboty/profili/attachments.md) |
+| Необязательный рендеринг через Fabric с частотой кадров клиента | [Клиентский мод](klientskii-mod/installation.md) |
+| Пакеты ресурсов, созданные провайдерами, и отдельный необязательный пакет рендеринга | [Пакеты ресурсов](configuration/resource-packs.md) |
+| Единый синтаксис команд `/armature reload <target>` | [Команды](nachalo-raboty/komandy-i-permissions.md#komandy-perezagruzki) |
+
+Современный формат профилей, публичный API и интеграции со скриптами
+сохраняются. В [списке поддерживаемых плагинов](rasshirennye-vozmozhnosti/podderzhivaemye-plaginy/README.md)
+отдельно указаны распознавание предметов, события и доставка пакетов ресурсов.
