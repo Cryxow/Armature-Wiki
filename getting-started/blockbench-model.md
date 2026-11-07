@@ -76,5 +76,23 @@ hold a stick in first person. An attack should play `inspect`. Ensure no other
 enabled profile matches the same tutorial item. The model is now usable without
 installing BetterModel or the optional client mod.
 
+## Import TACZ or Punchy
+
+In Blockbench Desktop, open the **Armature** category on the start screen.
+Use an Armature extension build that includes the import shortcuts.
+
+- **TACZ to Armature** imports a gun from a TACZ mod JAR or gun-pack ZIP.
+  Select both files together when the pack depends on the mod. ZIP assets
+  override matching assets in the JAR. If prompted, select the gun to import.
+  The project includes its geometry, texture, player arms, native camera and
+  supported Bedrock animation clips.
+- **Punchy to Armature** imports first-person animation tracks from a Punchy
+  mod JAR or resource-pack ZIP into an editable Armature player project.
+  The importer transfers animation tracks only. Punchy runtime rules, timeline
+  flags, sounds and custom item geometry are outside its scope.
+
+Review the poses, camera and item alignment in Blockbench. Save the project as
+`.armature` v2 and bind the clips you want to use in an Armature profile.
+
 Continue with [Saving & deploying](models/saving-deploying.md) and
 [Profile structure](profiles/README.md).

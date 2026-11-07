@@ -19,6 +19,12 @@ Armature controls presentation. Minecraft and gameplay plugins retain item
 inventories, ammo, damage, projectiles, reload logic and cooldown authority.
 An animation named `fire` does not fire a weapon.
 
+{% hint style="info" %}
+This documentation covers Armature 2.0.0. Check your installed version before
+using the examples. The [1.3.0 documentation snapshot](https://github.com/Cryxow/Armature-Wiki/tree/wiki-v1.3.0)
+is available on GitHub.
+{% endhint %}
+
 ## Choose your starting point
 
 - **Server administrator:** [Installation](getting-started/installation.md), then
